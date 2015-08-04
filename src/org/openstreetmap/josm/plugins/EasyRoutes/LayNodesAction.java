@@ -14,7 +14,6 @@ import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.Notification;
-import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 
 public final class LayNodesAction extends JosmAction {
     public LayNodesAction() {
@@ -36,17 +35,9 @@ public final class LayNodesAction extends JosmAction {
                     .setIcon(JOptionPane.WARNING_MESSAGE)
                     .show();
         }
-        XyzLayer lay;
-		try {
-			lay = new XyzLayer(selection2);
-	        Main.main.addLayer(lay);
-		} catch (NodeConnectException e1) {
-    		e1.printStackTrace();
-            new Notification(
-                    tr("Nodes are not connect together"))
-                    .setIcon(JOptionPane.WARNING_MESSAGE)
-                    .show();
-		}
+        RoutingLayer lay;
+		lay = new RoutingLayer(selection2, "xxx", new WaySplitter(Main.pref.getArray("easy-routes.weights")));
+	       Main.main.addLayer(lay);
     }
 
     @Override

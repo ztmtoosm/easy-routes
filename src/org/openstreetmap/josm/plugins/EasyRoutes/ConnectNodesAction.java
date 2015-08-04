@@ -25,9 +25,9 @@ public final class ConnectNodesAction extends JosmAction {
 			Collection<Collection<String>> aktPreferences = Main.pref
 					.getArray("easy-routes.weights");
 			WaySplitter ws = new WaySplitter(aktPreferences);
-			ws.splitWays(lis, getCurrentDataSet());
+			ws.splitWays(lis);
 			getCurrentDataSet().clearSelection();
-			List<Way> xd = ws.getWaysAfterSplit(lis, getCurrentDataSet());
+			List<Way> xd = ws.getWaysAfterSplit(lis);
 			for (Way x : xd) {
 				getCurrentDataSet().addSelected(x);
 			}

@@ -37,14 +37,13 @@ MapView mv;
     }
 
     @Override public void mousePressed(MouseEvent e) {
-    	System.out.println(e.getY()+" P "+e.getX());
     }
 
     @Override public void mouseReleased(MouseEvent e) {
     	if(dragged) {
     	Layer y = Main.main.getActiveLayer();
-    	if(y.getClass()==XyzLayer.class) {
-    		XyzLayer yy = (XyzLayer)(y);
+    	if(y.getClass()==RoutingLayer.class) {
+    		RoutingLayer yy = (RoutingLayer)(y);
     		try {
 				yy.dragAction(e.getX(), e.getY());
 			} catch (NodeConnectException e1) {
@@ -62,19 +61,18 @@ MapView mv;
     }
     @Override public void mouseClicked(MouseEvent e) {
     	Layer y = Main.main.getActiveLayer();
-    	if(y.getClass()==XyzLayer.class) {
-    		XyzLayer yy = (XyzLayer)(y);
+    	if(y.getClass()==RoutingLayer.class) {
+    		RoutingLayer yy = (RoutingLayer)(y);
     		yy.addMiddleNode();
     	}
     	
     }
     @Override public void mouseMoved(MouseEvent e) {
     	Layer y = Main.main.getActiveLayer();
-    	if(y.getClass()==XyzLayer.class) {
-    		XyzLayer yy = (XyzLayer)(y);
+    	if(y.getClass()==RoutingLayer.class) {
+    		RoutingLayer yy = (RoutingLayer)(y);
     		yy.setProposedPoint(e.getX(), e.getY());
     	}
-    	System.out.println(e.getY()+" motion "+e.getX());
     }
 
     @Override public boolean layerIsSupported(Layer l) {

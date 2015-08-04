@@ -17,26 +17,94 @@ import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.data.osm.event.AbstractDatasetChangedEvent;
+import org.openstreetmap.josm.data.osm.event.DataChangedEvent;
+import org.openstreetmap.josm.data.osm.event.DataSetListener;
+import org.openstreetmap.josm.data.osm.event.NodeMovedEvent;
+import org.openstreetmap.josm.data.osm.event.PrimitivesAddedEvent;
+import org.openstreetmap.josm.data.osm.event.PrimitivesRemovedEvent;
+import org.openstreetmap.josm.data.osm.event.RelationMembersChangedEvent;
+import org.openstreetmap.josm.data.osm.event.TagsChangedEvent;
+import org.openstreetmap.josm.data.osm.event.WayNodesChangedEvent;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.DijkstraData;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.RoutingNode;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.RoutingVertex;
 import org.openstreetmap.josm.tools.Pair;
 
-public class WaySplitter {
-	private Collection<Collection<String>> aktPreferences;
-	DijkstraData dd;
-	Map<Pair<Node, Node>, Way> connections;
-	Set <Node> conNodes;
+public class WaySplitter implements DataSetListener  {
+	private Collection<Collection<String> > aktPreferences;
+	private DijkstraData dijkstraData;
+	private Map<Pair<Node, Node>, Way> connections;
+	private Set <Node> connectedNodes;
+	private Map<Node, RoutingNode> osmNodeToRoutingNode;
+	private Map<RoutingNode, Node> routingNodeToOsmNode;
+	private DataSet ds = null;
 	public WaySplitter(Collection<Collection<String>> aktPreferences) {
 		this.aktPreferences = aktPreferences;
+		Main.main.getCurrentDataSet().addDataSetListener(this);
+		ds = Main.main.getCurrentDataSet();
+	}
+	public DataSet getDataSet() {
+		return ds;
+	}
+	int licznik=0;
+	private void updateAllData() {
+		licznik++;
+		System.out.println("UPDATE ALL DATA "+licznik+" "+Main.main.getCurrentDataSet()+" "+ds);
+		DataSet dataSet = Main.main.getCurrentDataSet();
+			connectedNodes = new TreeSet <Node>();
+			connections = new HashMap<Pair<Node, Node>, Way>();
+			Collection<Node> nodes = dataSet.getNodes();
+			Collection<Way> ways = dataSet.getWays();
+			osmNodeToRoutingNode = new HashMap<Node, RoutingNode>();
+			routingNodeToOsmNode = new HashMap<RoutingNode, Node>();
+			dijkstraData = new DijkstraData();
+			for (Node n : nodes) {
+				RoutingNode nowy = new RoutingNode();
+				osmNodeToRoutingNode.put(n, nowy);
+				routingNodeToOsmNode.put(nowy, n);
+				dijkstraData.add(nowy);
+			}
+			for (Way w : ways) {
+				if (w != null) {
+					List<Node> ll1 = w.getNodes();
+					double waga = getWeight(w, true);
+					double waga_rev = getWeight(w, false);
+					if (waga > 0 || waga_rev > 0) {
+						for (int i = 0; i < ll1.size() - 1; i++) {
+							Node a1 = ll1.get(i);
+							Node a2 = ll1.get(i + 1);
+							LatLon coor1 = a1.getCoor();
+							LatLon coor2 = a2.getCoor();
+							double len = coor1.greatCircleDistance(coor2) * waga;
+							double len_rev = coor1.greatCircleDistance(coor2)
+									* waga_rev;
+							if (waga > 0) {
+								connectedNodes.add(a1);
+								connectedNodes.add(a2);
+								RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a1),
+										osmNodeToRoutingNode.get(a2), len);
+							}
+							if (waga_rev > 0) {
+								connectedNodes.add(a1);
+								connectedNodes.add(a2);
+								RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a2),
+										osmNodeToRoutingNode.get(a1), len_rev);
+							}
+							Pair<Node, Node> p1 = Pair.create(a1, a2);
+							connections.put(p1, w);
+						}
+					}
+				}
+			}
 	}
 	Node getClosestPoint(LatLon akt) {
-		if(conNodes == null)
+		if(connectedNodes == null)
 			return null;
 		double wynik = 1000000.0;
 		Node wyn = null;
-		for(Node n : conNodes) {
+		for(Node n : connectedNodes) {
 			double dist = n.getCoor().greatCircleDistance(akt);
 			if(dist<wynik) {
 				wynik=dist;
@@ -45,7 +113,7 @@ public class WaySplitter {
 		}
 		return wyn;
 	}
-	private double getWeight(Way w, boolean isNormal) {
+	private double getWeight(Way w, boolean isNormalDirection) {
 		double value = -1;
 		if (aktPreferences == null)
 			return 1;
@@ -67,7 +135,7 @@ public class WaySplitter {
 				wei = 0;
 			else
 				wei = Double.valueOf(ar[3]);
-			if (isNormal) {
+			if (isNormalDirection) {
 				if (ar[2].equals(""))
 					wei = 0;
 				else
@@ -86,74 +154,26 @@ public class WaySplitter {
 		return value;
 	}
 
-	private List<Node> completeNetwork(List<Node> middleNodes, DataSet dataSet, boolean newDData)
+	public List<Node> completeNetwork(List<Node> middleNodes, boolean newDData)
 			throws NodeConnectException {
-		conNodes = new TreeSet <Node>();
-		connections = new HashMap<Pair<Node, Node>, Way>();
-		Collection<Node> nodes = dataSet.getNodes();
-		Collection<Way> ways = dataSet.getWays();
-		Map<Node, RoutingNode> pr1 = new HashMap<Node, RoutingNode>();
-		Map<RoutingNode, Node> pr2 = new HashMap<RoutingNode, Node>();
-		dd = new DijkstraData();
-		for (Node n : nodes) {
-			RoutingNode nowy = new RoutingNode();
-			pr1.put(n, nowy);
-			pr2.put(nowy, n);
-			dd.add(nowy);
-		}
-		for (Way w : ways) {
-			if (w != null) {
-				List<Node> ll1 = w.getNodes();
-				double waga = getWeight(w, true);
-				double waga_rev = getWeight(w, false);
-				if (waga > 0 || waga_rev > 0) {
-					for (int i = 0; i < ll1.size() - 1; i++) {
-						Node a1 = ll1.get(i);
-						Node a2 = ll1.get(i + 1);
-						LatLon coor1 = a1.getCoor();
-						LatLon coor2 = a2.getCoor();
-						double len = coor1.greatCircleDistance(coor2) * waga;
-						double len_rev = coor1.greatCircleDistance(coor2)
-								* waga_rev;
-						if (waga > 0) {
-							conNodes.add(a1);
-							conNodes.add(a2);
-							RoutingVertex nowa = new RoutingVertex(pr1.get(a1),
-									pr1.get(a2), len);
-						}
-						if (waga_rev > 0) {
-							conNodes.add(a1);
-							conNodes.add(a2);
-							RoutingVertex nowa = new RoutingVertex(pr1.get(a2),
-									pr1.get(a1), len_rev);
-						}
-						Pair<Node, Node> p1 = Pair.create(a1, a2);
-						connections.put(p1, w);
-					}
-				}
-			}
-		}
+		if(newDData || osmNodeToRoutingNode==null || routingNodeToOsmNode==null)
+			updateAllData();
 		List<RoutingNode> wezly = new ArrayList<RoutingNode>();
 		for (int i = 0; i < middleNodes.size() - 1; i++) {
-			List<RoutingNode> wezlyTmp = dd.calculate(
-					pr1.get(middleNodes.get(i)),
-					pr1.get(middleNodes.get(i + 1)));
+			List<RoutingNode> wezlyTmp = dijkstraData.calculate(
+					osmNodeToRoutingNode.get(middleNodes.get(i)),
+					osmNodeToRoutingNode.get(middleNodes.get(i + 1)));
 			if (i > 0)
 				wezlyTmp = wezlyTmp.subList(1, wezlyTmp.size());
 			wezly.addAll(wezlyTmp);
 		}
 		List<Node> wynik = new ArrayList<Node>();
 		for (int i = 0; i < wezly.size(); i++) {
-			wynik.add(pr2.get(wezly.get(i)));
+			wynik.add(routingNodeToOsmNode.get(wezly.get(i)));
 		}
 		return wynik;
 	}
-
-	public List<Node> completeNetwork(List<Node> middleNodes,
-			boolean newDData) throws NodeConnectException {
-		return completeNetwork(middleNodes, Main.main.getCurrentDataSet(), newDData);
-	}
-
+	
 	private void dodajWierzcholek(Map<Way, Collection<Node>> grenzeNodes,
 			Way id, Node n) {
 		Way akt = id;
@@ -171,10 +191,8 @@ public class WaySplitter {
 		}
 	}
 
-	public void splitWays(List<Node> middleNodes, DataSet dataSet)
-			throws NodeConnectException {
-List<Node> nodes = completeNetwork(middleNodes, dataSet,
-				true);
+	public void splitWays(List<Node> middleNodes) throws NodeConnectException {
+		List<Node> nodes = completeNetwork(middleNodes, false);
 		Way aktWId = null;
 		int startNId = 0;
 		Map<Way, Collection<Node>> grenzeNodes = new HashMap<Way, Collection<Node>>();
@@ -222,14 +240,34 @@ List<Node> nodes = completeNetwork(middleNodes, dataSet,
 			}
 		}
 	}
-
-	public List<Way> getWaysAfterSplit(List<Node> middleNodes, DataSet dataSet)
+	
+	private int isReversed(Way w, Node n1, Node n2) {
+		List <Node> xd=w.getNodes();
+		for(int i=0; i<xd.size()-1; i++) {
+			if (xd.get(i)==n1 && xd.get(i+1)==n2)
+				return 1;
+			if (xd.get(i)==n2 && xd.get(i+1)==n1)
+				return -1;
+		}
+		return 0;
+	}
+	
+	private void addForBackStatus(Way w, Node n1, Node n2, Set<Way> nor, Set<Way> bac) {
+		int wynik = isReversed(w,n1,n2);
+		if(wynik<1)
+			bac.add(w);
+		if(wynik>-1)
+			nor.add(w);
+	}
+	
+	public List<Way> getWaysAfterSplit(List<Node> middleNodes, List<String> forwardBackward)
 			throws NodeConnectException {
 		connections = new HashMap<Pair<Node, Node>, Way>();
-		List<Node> nodes = completeNetwork(middleNodes, dataSet,
-				true);
+		List<Node> nodes = completeNetwork(middleNodes, true);
 		Way aktWId = null;
 		List<Way> wynik = new ArrayList<Way>();
+		Set<Way> waysNormalDirection = new TreeSet<>();
+		Set<Way> waysReverseDirection = new TreeSet<>();
 		for (int i = 0; i < nodes.size(); i++) {
 			Node n = nodes.get(i);
 			if (i > 0) {
@@ -247,11 +285,114 @@ List<Node> nodes = completeNetwork(middleNodes, dataSet,
 					wynik.add(aktWId);
 					aktWId = wId;
 				}
+				addForBackStatus(aktWId, nprim, n, waysNormalDirection, waysReverseDirection);
 			}
 		}
 		if (nodes.size() > 0) {
 			wynik.add(aktWId);
 		}
+		if(forwardBackward==null)
+			return wynik;
+		for(int i=0; i<wynik.size(); i++) {
+			int licznik = 0;
+			if(waysNormalDirection.contains(wynik.get(i)))
+				licznik++;
+			if(waysReverseDirection.contains(wynik.get(i)))
+				licznik--;
+			if(licznik==-1)
+				forwardBackward.add("backward");
+			if(licznik==0)
+				forwardBackward.add("");
+			if(licznik==1)
+				forwardBackward.add("forward");
+			System.out.println("LICZNIK "+licznik);
+		}
 		return wynik;
+	}
+	
+	public List<Way> getWaysAfterSplit(List<Node> middleNodes) throws NodeConnectException {
+		List <String> fb = null;
+		return getWaysAfterSplit(middleNodes, fb);
+	}
+	
+	private List <WaySplitterDataListener> listeners = new ArrayList<>();
+	public void registerListener(WaySplitterDataListener lis) {
+		listeners.add(lis);
+	}
+	public void unregisterListener(WaySplitterDataListener lis) {
+		listeners.remove(lis);
+	}
+	private void powiadom() {
+		for(WaySplitterDataListener lis : listeners) {
+			lis.onWaySplitterDataChange();
+		}
+	}
+	
+	public void changeDelay() {
+		final WaySplitter ws = this;
+		/*
+		if(changed)
+			return;
+		ws.changed=true;
+		new java.util.Timer().schedule( 
+		        new java.util.TimerTask() {
+		            @Override
+		            public void run() {
+		            			ws.changed=false;*/
+		            			ws.updateAllData();
+		            			ws.powiadom();/*
+		            }
+		        }, 500);*/
+	}
+	
+
+	
+	@Override
+	public void primitivesAdded(PrimitivesAddedEvent event) {
+		if(listeners.size()==0)
+			return;
+		System.out.println("PRIMITIVES ADD");
+		changeDelay();
+	}
+	@Override
+	public void primitivesRemoved(PrimitivesRemovedEvent event) {
+		if(listeners.size()==0)
+			return;
+		System.out.println("PRIMITIVES REMOVED");
+		changeDelay();
+	}
+	@Override
+	public void tagsChanged(TagsChangedEvent event) {
+		if(listeners.size()==0)
+			return;
+		System.out.println("TAGS CHANGED");
+		changeDelay();
+	}
+	@Override
+	public void nodeMoved(NodeMovedEvent event) {
+	}
+	@Override
+	public void wayNodesChanged(WayNodesChangedEvent event) {
+		if(listeners.size()==0)
+			return;
+		System.out.println("WAY NODES");
+		changeDelay();
+	}
+	@Override
+	public void relationMembersChanged(RelationMembersChangedEvent event) {
+	}
+	@Override
+	public void otherDatasetChange(AbstractDatasetChangedEvent event) {
+		if(listeners.size()==0)
+			return;
+		System.out.println("OTHER");
+		changeDelay();
+	}
+	@Override
+	public void dataChanged(DataChangedEvent event) {
+		if(listeners.size()==0)
+			return;
+		System.out.println("DCC");
+		changeDelay();
 	}
 }
