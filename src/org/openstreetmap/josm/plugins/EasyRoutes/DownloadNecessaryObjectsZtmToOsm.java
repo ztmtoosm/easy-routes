@@ -6,10 +6,10 @@ import org.openstreetmap.josm.data.osm.PrimitiveId;
 import org.openstreetmap.josm.gui.io.DownloadPrimitivesWithReferrersTask;
 import org.openstreetmap.josm.gui.progress.ProgressMonitor;
 
-public class GownoTask extends DownloadPrimitivesWithReferrersTask {
-	DownloadAlongWayAction xxx;
-        	public GownoTask(boolean newLayer, List<PrimitiveId> ids, boolean downloadReferrers,
-                    boolean full, String newLayerName, ProgressMonitor monitor, DownloadAlongWayAction xxx) {
+public class DownloadNecessaryObjectsZtmToOsm extends DownloadPrimitivesWithReferrersTask {
+	ZtmToOsmAction xxx;
+        	public DownloadNecessaryObjectsZtmToOsm(boolean newLayer, List<PrimitiveId> ids, boolean downloadReferrers,
+                    boolean full, String newLayerName, ProgressMonitor monitor, ZtmToOsmAction xxx) {
         		super(newLayer, ids, downloadReferrers, full, newLayerName, monitor);
         		this.xxx=xxx;
         	}

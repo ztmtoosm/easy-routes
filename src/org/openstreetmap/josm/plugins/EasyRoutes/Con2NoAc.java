@@ -18,14 +18,11 @@ import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectExc
 
 public final class Con2NoAc extends JosmAction {
 	void foo3(RoutingLayer l) {
-		System.out.println("aaaa");
 		try {
 			getCurrentDataSet().clearSelection();
 			List<Way> xd = l.splitWays();
-			System.out.println(xd.size()+"XD SIZE SX");
 			for (Way x : xd) {
 				getCurrentDataSet().addSelected(x);
-			System.out.println("bbbb");
 			}
 		} catch (NodeConnectException e) {
 			e.printStackTrace();
@@ -35,8 +32,7 @@ public final class Con2NoAc extends JosmAction {
 	}
 
 	public Con2NoAc() {
-		super(tr("TEST4"), "dzik",
-				tr("test4"), null, true, true);
+		super(tr("Layer to ways"), null, tr("Select ways from routing layer"), null, true, true);
 	}
 
 	@Override
@@ -45,7 +41,6 @@ public final class Con2NoAc extends JosmAction {
 			return;
 		if(Main.main.getActiveLayer().getClass()==RoutingLayer.class) {
 			RoutingLayer l = (RoutingLayer)Main.main.getActiveLayer();
-			System.out.println("zzzz");
 			if(l.crucialNodes!=null)
 				foo3(l);
 		}

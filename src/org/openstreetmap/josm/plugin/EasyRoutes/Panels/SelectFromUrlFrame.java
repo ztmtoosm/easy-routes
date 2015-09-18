@@ -8,44 +8,90 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.openstreetmap.josm.Main;
 
 public class SelectFromUrlFrame extends JFrame {
-	String[] wybor = null;
-	SelectFromUrlFrame(SelectFileOrUrlPanel parentPanel) {
-	 super("BoxLayoutDemo");
-		this.parentPanel=parentPanel;
-	 setVisible(true);
-	 setSize(300, 220);
-	 setLocationRelativeTo(null);
-	 String wynik=downUrl("http://vps134914.ovh.net/wyszuk/ListWarszawa.json");
-	 foo(wynik);
+	
+	private void getCities(List<String> server, List<String> city) {
+		Collection<Collection<String> > servers = Main.pref.getArray("easy-routes.server");
+		for(Collection<String> foo : servers) {
+			Iterator it1=foo.iterator();
+			if(foo.size()>0)
+			{
+				String serverName = (String) it1.next();
+				System.out.println(serverName);
+				String wynik=downUrl(serverName+"List.json");
+				JSONParser parser = new JSONParser();
+				Object obj;
+				try {
+					obj = parser.parse(wynik);
+					JSONArray array = (JSONArray) obj;
+					for (int i = 0; i < array.size(); i++) {
+						String obb = (String) array.get(i);
+						city.add(obb);
+						server.add(serverName);
+					}
+				} catch (ParseException e2) {
+					e2.printStackTrace();
+				}
+			}
+		}
 	}
+	String[] wybor = null;
+	JScrollPane listScroller;
+	JPanel pan = new JPanel();
+	SelectFromUrlFrame(SelectFileOrUrlPanel parentPanel) {
+		 super("Wybierz plik z serwera");
+			
+			this.parentPanel=parentPanel;
+		 setVisible(true);
+		 setSize(300, 220);
+		 setLocationRelativeTo(null);
+		 add(pan);
+		pan.setLayout(new BoxLayout(pan, BoxLayout.PAGE_AXIS));
+		final List<String> l1 = new ArrayList<>();
+		final List<String> l2 = new ArrayList<>();
+		getCities(l1,l2);
+		String[] l3 = new String[l1.size()];
+		for(int i=0; i<l1.size(); i++)
+			l3[i]=l1.get(i)+" "+l2.get(i);
+		JComboBox foox = new JComboBox(l3);
+		foox.setMaximumSize(new Dimension(2000, 50));
+		final SelectFromUrlFrame hand = this;
+		foox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent ae){
+					JComboBox cb = (JComboBox)ae.getSource();
+					int pos=cb.getSelectedIndex();
+					
+					 String wynik=downUrl(l1.get(pos)+"List"+l2.get(pos)+".json");
+					 hand.foo(wynik, l1.get(pos), l2.get(pos));
+				}});
+		pan.add(foox);
+		foox.setSelectedIndex(0);
+	}
+	JButton butOk;
 	JList lista;
 	SelectFileOrUrlPanel parentPanel;
-	void foo(String tab) {
-		JPanel pan = new JPanel();
-		add(pan);
-		pan.setLayout(new BoxLayout(pan, BoxLayout.PAGE_AXIS));
-		
-		
-		JLabel emptyLabel = new JLabel("");
-		emptyLabel.setText("xxxx.");
-		emptyLabel.setPreferredSize(new Dimension(175, 100));
-		pan.add(emptyLabel);
-
+	void foo(String tab, final String server, final String city) {
 		
 		JSONParser parser = new JSONParser();
 		Object obj;
@@ -61,23 +107,27 @@ public class SelectFromUrlFrame extends JFrame {
 		} catch (ParseException e2) {
 			e2.printStackTrace();
 		}
+		if(lista!=null)
+			pan.remove(listScroller);
+		if(butOk!=null)
+			pan.remove(butOk);
 		lista = new JList(wybor);
-		lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JScrollPane listScroller = new JScrollPane(lista);
+		lista.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		listScroller = new JScrollPane(lista);
 		listScroller.setPreferredSize(new Dimension(400, 70));
 		lista.setLayoutOrientation(JList.VERTICAL);
-		pan.add(lista);
+		pan.add(listScroller);
 		ListSelectionModel listSelectionModel = lista.getSelectionModel();
 	        
 	        
-			JButton but = new JButton("OK");
-			pan.add(but);
+			butOk = new JButton("OK");
+			pan.add(butOk);
 			final SelectFromUrlFrame fr = this;
-			
-			but.addActionListener(new ActionListener() {
+			SwingUtilities.updateComponentTreeUI(this);
+			butOk.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent ae){
-					fr.endx();
+					fr.endx(server, city);
 
 			       }
 				
@@ -110,14 +160,21 @@ public class SelectFromUrlFrame extends JFrame {
 		}
 		return "";
 	}
-	public void endx() {
-		int wyb = lista.getSelectedIndex();
-		if(wyb>=0) {
-			String xx = (String) lista.getSelectedValue();
-			String wynik=downUrl("http://vps134914.ovh.net/wyszuk/jsWarszawa"+xx+".json");
-			parentPanel.urlDownloaded(wynik);
-			this.setVisible(false);
-			this.dispose();
+	public void endx(String server, String city) {
+		List <String> sciezki = lista.getSelectedValuesList();
+		int[] wybs = lista.getSelectedIndices();
+		List <String> arr = new ArrayList<>();
+		for(int i=0; i<sciezki.size(); i++) {
+			int wyb = wybs[i];
+			if(wyb>=0) {
+				String xx = sciezki.get(i);
+				String wynik=downUrl(server+"js"+city+xx+".json");
+				arr.add(wynik);
+
+			}
 		}
+		parentPanel.urlDownloaded(arr.toArray(new String[arr.size()]));
+		this.setVisible(false);
+		this.dispose();
 	}
 }

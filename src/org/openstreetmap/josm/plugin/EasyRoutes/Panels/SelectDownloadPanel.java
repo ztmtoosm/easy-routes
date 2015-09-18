@@ -11,12 +11,12 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.openstreetmap.josm.plugins.EasyRoutes.DownloadAlongWayAction;
+import org.openstreetmap.josm.plugins.EasyRoutes.ZtmToOsmAction;
 
 public class SelectDownloadPanel extends JPanel {
-	final DownloadAlongWayAction handler;
+	final ZtmToOsmAction handler;
 	final List<Rectangle2D> toDownload;
-	public SelectDownloadPanel(final DownloadAlongWayAction handler, List<Rectangle2D> toDown) {
+	public SelectDownloadPanel(final ZtmToOsmAction handler, List<Rectangle2D> toDown) {
 		super();
 		this.toDownload = toDown;
 		this.handler = handler;
@@ -25,8 +25,12 @@ public class SelectDownloadPanel extends JPanel {
 		emptyLabel.setText("2.");
 		emptyLabel.setPreferredSize(new Dimension(175, 100));
 		add(emptyLabel);
-		JButton but = new JButton("overpass");
+		JButton but = new JButton("overpass-highway");
 		add(but);
+		JButton but4 = new JButton("overpass-railway");
+		add(but4);
+		JButton but9 = new JButton("overpass-e");
+		add(but9);
 		JButton but2 = new JButton("osm");
 		add(but2);
 		JButton but3 = new JButton("DALEJ");
@@ -37,13 +41,25 @@ public class SelectDownloadPanel extends JPanel {
 		but.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae){
-				handler.downloadDataOverPass(toDownload);
+				handler.downloadDataOverPass(toDownload, "highway");
+			}
+		});
+		but4.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae){
+				handler.downloadDataOverPass(toDownload, "railway");
 			}
 		});
 		but2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae){
 				handler.downloadDataOsm(toDownload);
+		       }
+		});
+		but9.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae){
+				handler.downloadDataOldLine();
 		       }
 		});
 		but3.addActionListener(new ActionListener() {

@@ -1,5 +1,6 @@
 package org.openstreetmap.josm.plugins.EasyRoutes;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -29,12 +30,13 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 		return wynik;
 	}
 
-	private Collection<Collection<String>> defaultPref() {
+	private Collection<Collection<String>> typicalPref() {
 		Collection<Collection<String>> wynik = new ArrayList<Collection<String>>();
 		wynik.add(createCol(new String[] { "highway", "motorway", "0.8", "-1" }));
 		wynik.add(createCol(new String[] { "highway", "motorway_link", "0.8",
 				"-1" }));
 		wynik.add(createCol(new String[] { "highway", "trunk", "0.8", "0.8" }));
+		wynik.add(createCol(new String[] { "highway", "trunk_link", "0.8", "0.8" }));
 		wynik.add(createCol(new String[] { "highway", "primary", "0.9", "0.9" }));
 		wynik.add(createCol(new String[] { "highway", "primary_link", "0.9",
 				"0.9" }));
@@ -45,6 +47,8 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 		wynik.add(createCol(new String[] { "highway", "tertiary_link", "1", "1" }));
 		wynik.add(createCol(new String[] { "highway", "residential", "1.3",
 				"1.3" }));
+		wynik.add(createCol(new String[] { "highway", "unclassified", "1.36",
+		"1.36" }));
 		wynik.add(createCol(new String[] { "highway", "service", "1.3", "1.3" }));
 		wynik.add(createCol(new String[] { "routing:ztm", "yes", "0.8", "0.8" }));
 		wynik.add(createCol(new String[] { "oneway", "yes", "", "-1" }));
@@ -56,32 +60,42 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 	
 	private Collection<Collection<String>> railwayPref() {
 		Collection<Collection<String>> wynik = new ArrayList<Collection<String>>();
-		wynik.add(createCol(new String[] { "railway", "", "0.8", "-1" }));
+		wynik.add(createCol(new String[] { "railway", "", "0.8", "0.8" }));
 		wynik.add(createCol(new String[] { "routing:ztm", "yes", "0.8", "0.8" }));
 		wynik.add(createCol(new String[] { "oneway", "yes", "", "-1" }));
 		wynik.add(createCol(new String[] { "oneway", "-1", "-1", "" }));
 		wynik.add(createCol(new String[] { "routing:ztm", "no", "-1", "-1" }));
 		return wynik;
 	}
+	
+	private Collection<Collection<String>> serverPref() {
+		Collection<Collection<String>> wynik = new ArrayList<>();
+		Collection <String> foo = new ArrayList<>();
+		foo.add("http://vps134914.ovh.net/wyszuk/");
+		wynik.add(foo);
+		return wynik;
+	}
 	private void setPrefOnInit(Collection<Collection<String>> array, String name) {
 		Preferences p = Main.pref;
 		Collection<Collection<String>> pref = p.getArray(name);
 		if (pref == null || pref.size() == 0) {
-			p.putArray(name, defaultPref());
+			p.putArray(name, array);
 		}
 	}
 	public EasyRoutesPlugin(PluginInformation info) {
 		super(info);
-		setPrefOnInit(defaultPref(), "easy-routes.weights");
-		setPrefOnInit(defaultPref(), "easy-routes.weights.bus");
+		setPrefOnInit(serverPref(), "easy-routes.server");
+		setPrefOnInit(typicalPref(), "easy-routes.weights");
+		setPrefOnInit(typicalPref(), "easy-routes.weights.bus");
 		setPrefOnInit(railwayPref(), "easy-routes.weights.tram");
-		JMenu jMenu = Main.main.menu.toolsMenu;
+		JMenu jMenu = Main.main.menu.addMenu("easy-routes", KeyEvent.VK_COMMA, Main.main.menu.getDefaultMenuPos(), "help");
 		jMenu.add(new JMenuItem(new ConnectNodesAction()));
 		preferences = (EasyRoutesPreference) new EasyRoutesPreference.Factory()
 				.createPreferenceSetting();
 		jMenu.add(new JMenuItem(new LayNodesAction()));
 		jMenu.add(new JMenuItem(new Con2NoAc()));
-		jMenu.add(new JMenuItem(new DownloadAlongWayAction()));
+		jMenu.add(new JMenuItem(new ZtmToOsmAction()));
+		jMenu.add(new JMenuItem(new PTAction()));
 	}
 
 	@Override
@@ -110,7 +124,7 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 	@Override
 	public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
 		if (newFrame != null) {
-			ZiwAction addRouteNodeAction = new ZiwAction(newFrame);
+			EditRoutingLayerAction addRouteNodeAction = new EditRoutingLayerAction(newFrame);
 			IconToggleButton removeRouteNodeButton = new IconToggleButton(
 					addRouteNodeAction);
 			newFrame.addMapMode(removeRouteNodeButton);

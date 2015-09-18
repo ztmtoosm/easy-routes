@@ -32,7 +32,7 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 	List<Node> crucialNodes;
 	List<List <Node> > middleNodes;
 	Node selectedNode;
-	public WaySplitter ws;
+	public RoutingSpecial ws;
 	MapView mv;
 	
 	public List <Node> getAllNodes() {
@@ -53,7 +53,9 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		}
 		return wynik;
 	}
-	
+	public List<List<Node>> getMiddleNodes() {
+		return middleNodes;
+	}
 	public Set <Node> getAllNodesSet() {
 		if(middleNodes==null)
 			return null;
@@ -69,8 +71,12 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		return wynik;
 	}
 	
-	public RoutingLayer(List<Node> crucialNodes, String description, WaySplitter ws) {
+	String desc;
+	
+	public RoutingLayer(List<Node> crucialNodes, String description, RoutingSpecial ws) {
 		super(description);
+		setVisible(false);
+		desc = description;
 		this.crucialNodes = crucialNodes;
 		this.ws = ws;
 		ws.registerListener(this);
@@ -178,7 +184,7 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 
 	@Override
 	public String getToolTipText() {
-		return "Hiking routes";
+		return "easy-routes layer";
 	}
 
 	@Override
@@ -216,10 +222,18 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		g.setStroke(str);
 		g.setFont(font);
 		g.setColor(Color.WHITE);
+		boolean cale = true;
 		for(int j=0; j<middleNodes.size(); j++) {
 			List<Node> tmpNodes = middleNodes.get(j);
+			if(middleNodes.get(j)==null)
+			{
+				setName(desc+" NIEPOŁĄCZONE LINIE!");
+				cale = false;
+			}
 			drawLine(g, tmpNodes);
 		}
+		if(cale)
+			setName(desc);
 		Stroke str2 = new BasicStroke(5, BasicStroke.CAP_ROUND,
 				BasicStroke.JOIN_ROUND);
 		g.setStroke(str2);
@@ -301,6 +315,7 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 	}
 	public void odswiez() {
 		middleNodes = new ArrayList<>();
+		boolean cale = true;
 		for(int i=0; i<crucialNodes.size()-1; i++) {
 			Node left = crucialNodes.get(i);
 			Node right = crucialNodes.get(i+1);
@@ -311,8 +326,12 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 				middleNodes.add(ws.completeNetwork(tmp, false));
 			} catch (NodeConnectException e) {
 				middleNodes.add(null);
+				setName(desc+" NIEPOŁĄCZONE LINIE!");
+				cale = false;
 			}
 		}
+		if(cale)
+			setName(desc);
 		Main.map.repaint();
 	}
 

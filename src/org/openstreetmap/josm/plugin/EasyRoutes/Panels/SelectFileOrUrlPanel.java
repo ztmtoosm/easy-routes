@@ -13,11 +13,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.openstreetmap.josm.plugins.EasyRoutes.DownloadAlongWayAction;
+import org.openstreetmap.josm.plugins.EasyRoutes.ZtmToOsmAction;
 
 public class SelectFileOrUrlPanel extends JPanel {
-	final DownloadAlongWayAction handler;
-	public SelectFileOrUrlPanel(final DownloadAlongWayAction handler) {
+	final ZtmToOsmAction handler;
+	public SelectFileOrUrlPanel(final ZtmToOsmAction handler) {
 		super();
 		this.handler = handler;
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
@@ -25,9 +25,9 @@ public class SelectFileOrUrlPanel extends JPanel {
 		emptyLabel.setText("1.");
 		emptyLabel.setPreferredSize(new Dimension(175, 100));
 		add(emptyLabel);
-		JButton but = new JButton("Wybierz plik normalny");
+		JButton but = new JButton("Wybierz plik lokalny");
 		add(but);
-		JButton but2 = new JButton("Wybierz plik z neta");
+		JButton but2 = new JButton("Wybierz plik z serwera");
 		add(but2);
 		final SelectFileOrUrlPanel pan = this;
 		
@@ -42,7 +42,9 @@ public class SelectFileOrUrlPanel extends JPanel {
 					try {
 						String fileString = new String(
 								Files.readAllBytes(file.toPath()));
-						handler.fileChosen(fileString);
+						String[] fileStringAr = new String[1];
+						fileStringAr[0] = fileString;
+						handler.fileChosen(fileStringAr);
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -59,7 +61,7 @@ public class SelectFileOrUrlPanel extends JPanel {
 		});
 	}
 
-	public void urlDownloaded(String wynik) {
+	public void urlDownloaded(String[] wynik) {
 		handler.fileChosen(wynik);
 		
 	}

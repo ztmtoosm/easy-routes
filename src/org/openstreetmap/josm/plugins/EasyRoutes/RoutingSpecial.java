@@ -16,6 +16,8 @@ import org.openstreetmap.josm.actions.SplitWayAction.SplitWayResult;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
+import org.openstreetmap.josm.data.osm.OsmPrimitive;
+import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.osm.event.AbstractDatasetChangedEvent;
 import org.openstreetmap.josm.data.osm.event.DataChangedEvent;
@@ -32,7 +34,7 @@ import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.RoutingNode;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.RoutingVertex;
 import org.openstreetmap.josm.tools.Pair;
 
-public class WaySplitter implements DataSetListener  {
+public class RoutingSpecial implements DataSetListener  {
 	private Collection<Collection<String> > aktPreferences;
 	private DijkstraData dijkstraData;
 	private Map<Pair<Node, Node>, Way> connections;
@@ -40,7 +42,7 @@ public class WaySplitter implements DataSetListener  {
 	private Map<Node, RoutingNode> osmNodeToRoutingNode;
 	private Map<RoutingNode, Node> routingNodeToOsmNode;
 	private DataSet ds = null;
-	public WaySplitter(Collection<Collection<String>> aktPreferences) {
+	public RoutingSpecial(Collection<Collection<String>> aktPreferences) {
 		this.aktPreferences = aktPreferences;
 		Main.main.getCurrentDataSet().addDataSetListener(this);
 		ds = Main.main.getCurrentDataSet();
@@ -75,25 +77,31 @@ public class WaySplitter implements DataSetListener  {
 						for (int i = 0; i < ll1.size() - 1; i++) {
 							Node a1 = ll1.get(i);
 							Node a2 = ll1.get(i + 1);
-							LatLon coor1 = a1.getCoor();
-							LatLon coor2 = a2.getCoor();
-							double len = coor1.greatCircleDistance(coor2) * waga;
-							double len_rev = coor1.greatCircleDistance(coor2)
-									* waga_rev;
-							if (waga > 0) {
-								connectedNodes.add(a1);
-								connectedNodes.add(a2);
-								RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a1),
-										osmNodeToRoutingNode.get(a2), len);
+							if(a1!=null && a2!=null)
+							{
+								LatLon coor1 = a1.getCoor();
+								LatLon coor2 = a2.getCoor();
+								if(coor1!=null && coor2!=null)
+								{
+									double len = coor1.greatCircleDistance(coor2) * waga;
+									double len_rev = coor1.greatCircleDistance(coor2)
+											* waga_rev;
+									if (waga > 0) {
+										connectedNodes.add(a1);
+										connectedNodes.add(a2);
+										RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a1),
+												osmNodeToRoutingNode.get(a2), len);
+									}
+									if (waga_rev > 0) {
+										connectedNodes.add(a1);
+										connectedNodes.add(a2);
+										RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a2),
+												osmNodeToRoutingNode.get(a1), len_rev);
+									}
+									Pair<Node, Node> p1 = Pair.create(a1, a2);
+									connections.put(p1, w);
+								}
 							}
-							if (waga_rev > 0) {
-								connectedNodes.add(a1);
-								connectedNodes.add(a2);
-								RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a2),
-										osmNodeToRoutingNode.get(a1), len_rev);
-							}
-							Pair<Node, Node> p1 = Pair.create(a1, a2);
-							connections.put(p1, w);
 						}
 					}
 				}
@@ -173,7 +181,19 @@ public class WaySplitter implements DataSetListener  {
 		}
 		return wynik;
 	}
-	
+	public double getDistance(List<Node> middleNodes, boolean newDData)
+			throws NodeConnectException {
+		double wynik = 0.0;
+		if(newDData || osmNodeToRoutingNode==null || routingNodeToOsmNode==null)
+			updateAllData();
+		List<RoutingNode> wezly = new ArrayList<RoutingNode>();
+		for (int i = 0; i < middleNodes.size() - 1; i++) {
+			wynik += dijkstraData.calculateDistance(
+					osmNodeToRoutingNode.get(middleNodes.get(i)),
+					osmNodeToRoutingNode.get(middleNodes.get(i + 1)));
+		}
+		return wynik;
+	}
 	private void dodajWierzcholek(Map<Way, Collection<Node>> grenzeNodes,
 			Way id, Node n) {
 		Way akt = id;
@@ -214,6 +234,8 @@ public class WaySplitter implements DataSetListener  {
 					dodajWierzcholek(grenzeNodes, aktWId, nodes.get(startNId));
 					aktWId = wId;
 					startNId = i - 1;
+				} else if (i>1 && nodes.get(i-2)==n) {
+					dodajWierzcholek(grenzeNodes, aktWId, nodes.get(i - 1));
 				}
 			}
 		}
@@ -231,7 +253,8 @@ public class WaySplitter implements DataSetListener  {
 						.toArray()));
 				List<List<Node>> chunks = SplitWayAction.buildSplitChunks(akt,
 						ll);
-				if (e1.getValue().size() > 0) {
+				System.out.println("CHUNKS\n"+chunks+"\n LL \n"+ll);
+				if (e1.getValue().size() > 0 && chunks!=null) {
 					SplitWayResult sp = SplitWayAction.splitWay(
 							Main.map.mapView.getEditLayer(), akt, chunks, ll);
 					Main.main.undoRedo.add(sp.getCommand());
@@ -329,7 +352,7 @@ public class WaySplitter implements DataSetListener  {
 	}
 	
 	public void changeDelay() {
-		final WaySplitter ws = this;
+		final RoutingSpecial ws = this;
 		/*
 		if(changed)
 			return;
@@ -365,6 +388,15 @@ public class WaySplitter implements DataSetListener  {
 	public void tagsChanged(TagsChangedEvent event) {
 		if(listeners.size()==0)
 			return;
+		List<? extends OsmPrimitive> foo = event.getPrimitives();
+		boolean ok =false;
+		for(OsmPrimitive x : foo) {
+			
+			if(x.getDisplayType()!=OsmPrimitiveType.RELATION && x.getDisplayType()!=OsmPrimitiveType.MULTIPOLYGON)
+				ok = true;
+		}
+		if(!ok)
+			return;
 		System.out.println("TAGS CHANGED");
 		changeDelay();
 	}
@@ -384,6 +416,15 @@ public class WaySplitter implements DataSetListener  {
 	@Override
 	public void otherDatasetChange(AbstractDatasetChangedEvent event) {
 		if(listeners.size()==0)
+			return;
+		Collection<? extends OsmPrimitive> foo = event.getPrimitives();
+		boolean ok =false;
+		for(OsmPrimitive x : foo) {
+			
+			if(x.getDisplayType()!=OsmPrimitiveType.RELATION && x.getDisplayType()!=OsmPrimitiveType.MULTIPOLYGON)
+				ok = true;
+		}
+		if(!ok)
 			return;
 		System.out.println("OTHER");
 		changeDelay();

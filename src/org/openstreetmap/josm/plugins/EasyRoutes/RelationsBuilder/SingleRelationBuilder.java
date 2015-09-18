@@ -1,6 +1,7 @@
 package org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +22,12 @@ import org.openstreetmap.josm.data.osm.RelationMember;
 import org.openstreetmap.josm.data.osm.SimplePrimitiveId;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingLayer;
-import org.openstreetmap.josm.plugins.EasyRoutes.WaySplitter;
+import org.openstreetmap.josm.plugins.EasyRoutes.RoutingSpecial;
 import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.RelationMemberBuilder.RelationMemberType;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 
 public class SingleRelationBuilder {
-	static Map <String, WaySplitter> splitters = new HashMap<>();
+	static Map <String, RoutingSpecial> splitters = new HashMap<>();
 	List<Long> track = new ArrayList<Long>();
 	List<Node> trackNodes = null;
 	List<Long> parentRel = new ArrayList<Long>();
@@ -107,6 +108,7 @@ public class SingleRelationBuilder {
 				if(czyDodawać) {
 					RelationMember member = new RelationMember("", x);
 					xyz.addMember(member);
+					xyz.setModified(true);
 				}
 			}
 		}
@@ -124,11 +126,14 @@ public class SingleRelationBuilder {
 		}
 		return wynik;
 	}
-	private void parentRelFromJson(JSONArray array) {
+	private void parentRelFromJson(JSONArray array, int przesuniecieUjemne) {
 		if(array==null)
 			return;
 		for (int j = 0; j < array.size(); j++) {
-			parentRel.add((Long) array.get(j));
+			long id = (Long) array.get(j);
+			if(id<0)
+				id-=przesuniecieUjemne;
+			parentRel.add(id);
 		}
 	}
 	
@@ -141,22 +146,27 @@ public class SingleRelationBuilder {
 		}
 	}
 	
-	private void relMembFromJson(JSONArray array) {
+	private void relMembFromJson(JSONArray array, int przesuniecieUjemne) {
 		for (int j = 0; j < array.size(); j++) {
 			JSONObject xd = (JSONObject) array.get(j);
 			String id = (String)xd.get("id");
 			String category = (String)xd.get("category");
 			String role = (String)xd.get("role");
-			relationMembers.add(new RelationMemberBuilder(Long.valueOf(id), role, RelationMemberBuilder.createCategory(category)));
+			long id2 = Long.valueOf(id);
+			if(id2<0)
+				id2-=przesuniecieUjemne;
+			relationMembers.add(new RelationMemberBuilder(id2, role, RelationMemberBuilder.createCategory(category)));
 		}
 	}
 	
-	SingleRelationBuilder(JSONObject jsonObject) {
+	SingleRelationBuilder(JSONObject jsonObject, int przesuniecieUjemne) {
 		trackFromJson((JSONArray) jsonObject.get("track"));
 		tagsFromJson((JSONArray) jsonObject.get("tags"));
-		parentRelFromJson((JSONArray) jsonObject.get("parentrel"));
-		relMembFromJson((JSONArray) jsonObject.get("members"));
+		parentRelFromJson((JSONArray) jsonObject.get("parentrel"), przesuniecieUjemne);
+		relMembFromJson((JSONArray) jsonObject.get("members"), przesuniecieUjemne);
 		id = (long)jsonObject.get("id");
+		if(id<0)
+			id-=przesuniecieUjemne;
 		String trackTypeTmp = (String)jsonObject.get("track_type");
 		if(trackTypeTmp!=null)
 			track_type = trackTypeTmp;
@@ -196,7 +206,7 @@ public class SingleRelationBuilder {
 			if(tags.containsKey("name"))
 				name = tags.get("name")+" ["+id+"]";
 			if(splitters.get(track_type) == null || splitters.get(track_type).getDataSet()!=Main.main.getCurrentDataSet()) {
-				splitters.put(track_type, new WaySplitter(Main.pref.getArray("easy-routes.weights."+track_type)));
+				splitters.put(track_type, new RoutingSpecial(Main.pref.getArray("easy-routes.weights."+track_type)));
 			}
 			lay = new RoutingLayer(getTrackNodes(), name, splitters.get(track_type));
 			Main.main.addLayer(lay);
@@ -209,5 +219,25 @@ public class SingleRelationBuilder {
 				lay.ws.unregisterListener(lay);
 			Main.main.removeLayer(lay);
 		}
+	}
+	public Collection<PrimitiveId> getNecessaryPrimitives() {
+		List <PrimitiveId> wyn = new ArrayList<PrimitiveId>();
+		for(Long x : getTrack()) {
+			wyn.add(new SimplePrimitiveId(x, OsmPrimitiveType.NODE));
+		}
+		for(RelationMemberBuilder x : relationMembers) {
+			PrimitiveId id = null;
+			if(x.id>0)
+			{
+				if(x.category==RelationMemberType.NODE)
+					id = new SimplePrimitiveId(x.id, OsmPrimitiveType.NODE);
+				if(x.category==RelationMemberType.WAY)
+					id = new SimplePrimitiveId(x.id, OsmPrimitiveType.WAY);
+				if(x.category==RelationMemberType.RELATION)
+					id = new SimplePrimitiveId(x.id, OsmPrimitiveType.RELATION);
+				wyn.add(id);
+			}
+		}
+		return wyn;
 	}
 }

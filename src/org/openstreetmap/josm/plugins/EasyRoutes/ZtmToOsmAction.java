@@ -6,12 +6,15 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import javax.swing.BoxLayout;
@@ -19,6 +22,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.DownloadAlongAction;
@@ -37,21 +41,17 @@ import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SelectDownloadPanel;
 import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SelectFileOrUrlPanel;
 import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.RelationsBuilder;
 import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.SingleRelationBuilder;
-import org.openstreetmap.josm.tools.Shortcut;
 
-public class DownloadAlongWayAction extends DownloadAlongAction {
+public class ZtmToOsmAction extends DownloadAlongAction {
 
-	List<PrimitiveId> prims0 = new ArrayList<>();
+
 	RelationsBuilder builder = null;
 	JPanel panel;
 	JFrame frame;
 	JLabel emptyLabel;
-	public DownloadAlongWayAction() {
-		super(tr("Download along..."), "dzik",
-				tr("Download OSM data along the selected ways."), Shortcut
-						.registerShortcut("tools:download_along",
-								tr("Tool: {0}", tr("Download Along")),
-								KeyEvent.VK_D, Shortcut.ALT_SHIFT), true);
+	public ZtmToOsmAction() {
+		super(tr("ztmtoosm creator"), "dzik",
+				tr("Update for public transport networks with ztmtoosm special file"), null, true);
 	}
 
 	@Override
@@ -60,7 +60,6 @@ public class DownloadAlongWayAction extends DownloadAlongAction {
 		// if (e.getSource() == openButton) {
 
 		// }
-		 prims0 = new ArrayList<>();
 		 frame = new JFrame("BoxLayoutDemo");
 		 frame.setVisible(true);
 		 frame.setSize(400, 200);
@@ -144,7 +143,7 @@ public class DownloadAlongWayAction extends DownloadAlongAction {
 					tr("Download data"));
 			final Future<?> future = new DownloadTaskList().download(false,
 					toDownload, true, false, monitor);
-			final DownloadAlongWayAction xa = DownloadAlongWayAction.this;
+			final ZtmToOsmAction xa = ZtmToOsmAction.this;
 			Main.worker.submit(new Runnable() {
 				@Override
 				public void run() {
@@ -158,35 +157,69 @@ public class DownloadAlongWayAction extends DownloadAlongAction {
 				}
 			});
 	}
-	public void downloadDataOverPass(List<Rectangle2D> toDownload) {
-		String url1 = "http://overpass-api.de/api/interpreter?data=%5Bout%3Axml%5D%3B%0A%2F%2F%20gather%20results%0A%28%0A%20%20%2F%2F%20query%20part%20for%3A%20%E2%80%9Chighway%3D*%E2%80%9D";
-
-		String url2 = "%2C";
-		String url = url1;
+	private String bbox (double a, double b, double c, double d) {
+		return "("+a+","+b+","+c+","+d+")";
+	}
+	private String lineOverPass(String bbox, String type, String key) {
+		return type+"[\""+key+"\"]"+bbox+";";
+	}
+	private String relWayNode(String bbox, String key) {
+		return lineOverPass(bbox, "node", key)+lineOverPass(bbox, "way", key)+lineOverPass(bbox, "relation", key);
+	}
+	public void downloadDataOverPass(List<Rectangle2D> toDownload, String key) {
+		
+		String serverPath = "http://overpass-api.de/api/interpreter?data=";
+		String txt0 = "[out:xml];(";
+		String txt9 = new String(txt0);
+		String txt2 = ")->.a;\n.a << ->.b;\n.a > ->.c;\n( .a; .b; .c;);\nout meta;";
+		
 		for(int i=0; i<toDownload.size(); i++)
 		{
 			Rectangle2D foo = toDownload.get(i);
-			String url0 = "%0A%20%20way%5B%22highway%22%5D%28";
-			String url2a = foo.getMinY()+url2+foo.getMinX()+url2+foo.getMaxY()+url2+foo.getMaxX();
-			String url3 = "%29%3B%0A%20%20node%5B%22highway%22%5D%28";
-			String url4 = "%29%3B%0A%20%20%20%20relation%5B%22highway%22%5D%28";
-			String url5	= "%29%3B%0A%20%20node%5B%22public_transport%22%5D%28";
-			String url6 = "%29%3B%0A%20%20%20%20way%5B%22public_transport%22%5D%28";
-			String url7 = "%29%3B%0A%20%20relation%5B%22public_transport%22%5D%28";
-			url += url0+url2a+url3+url2a+url4+url2a+url5+url2a+url6+url2a+url7+url2a+"%29%3B";
+			String bboxx = bbox(foo.getMinY(),foo.getMinX(),foo.getMaxY(),foo.getMaxX());
+			String txt1 = lineOverPass(bboxx, "way", key);
+			txt9 += txt1;
 			if(i%7==6 && i!=toDownload.size()-1) {
-				String url8 = "%0A%29-%3E.a%3B%0A.a%20%3C%3C%20-%3E.b%3B%0A.a%20%3E%20-%3E.c%3B%0A%28%0A%20%20.a%3B%0A%20%20.b%3B%0A%20%20.c%3B%0A%29%3B%0A%2F%2F%20print%20results%0Aout%20meta%3B";
-				url+=url8;
-				System.out.println(url);
-				openUrl(false, url);
-				System.out.println("AAAAAAAA");
-				url = url1;
+				try {
+					String txt35 = URLEncoder.encode(txt9+txt2, "UTF-8").replace("+", "%20");
+					String txt4 = serverPath+txt35;
+					txt9 = new String(txt0);
+					openUrl(false, txt4);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
-		String url8 = "%0A%29-%3E.a%3B%0A.a%20%3C%3C%20-%3E.b%3B%0A.a%20%3E%20-%3E.c%3B%0A%28%0A%20%20.a%3B%0A%20%20.b%3B%0A%20%20.c%3B%0A%29%3B%0A%2F%2F%20print%20results%0Aout%20meta%3B";
-		url+=url8;
-		System.out.println(url);
-		openUrl(false, url);
+		try {
+			String txt35 = URLEncoder.encode(txt9+txt2, "UTF-8").replace("+", "%20");
+			String txt4 = serverPath+txt35;
+			openUrl(false, txt4);
+			txt9 = new String(txt0);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+		}
+	}
+	public void downloadDataOldLine() {
+		List <Long> ids = builder.getExistRelations();
+		String serverPath = "http://overpass-api.de/api/interpreter?data=";
+		String txt = "[out:xml];(";
+		for(long x : ids)
+		{
+			txt+="relation("+x+"); ";
+		}
+		txt +=")->.a; .a >> ->.b; .b << ->.c; (.b; relation.c; ); out meta;";
+		String txt35;
+		try {
+			txt35 = URLEncoder.encode(txt, "UTF-8").replace("+", "%20");
+		
+		String txt4 = serverPath+txt35;
+		openUrl(false, txt4);
+		}
+		catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public void runNext() {
 		builder.createNecessaryRelations();
@@ -209,7 +242,7 @@ public class DownloadAlongWayAction extends DownloadAlongAction {
 			builder.createTracks();
 			emptyLabel.setText("3. Zweryfikuj trasę\n");
 			 JButton but = new JButton("Zweryfikowano");
-			 final DownloadAlongWayAction xa = DownloadAlongWayAction.this;
+			 final ZtmToOsmAction xa = ZtmToOsmAction.this;
 			 but.addActionListener(new ActionListener() {
 			       @Override
 				public void actionPerformed(ActionEvent ae){
@@ -224,6 +257,7 @@ public class DownloadAlongWayAction extends DownloadAlongAction {
 				frame.getContentPane().invalidate();
 			 frame.getContentPane().add(panel);
 			 frame.getContentPane().revalidate();
+				SwingUtilities.updateComponentTreeUI(frame);
 	}
 
 	public void task4() {
@@ -240,27 +274,24 @@ public class DownloadAlongWayAction extends DownloadAlongAction {
 	}
 
 
-	public void fileChosen(String fileString) {
-		
+	public void fileChosen(String[] fileString) {
+		Set<PrimitiveId> prims0 = new HashSet<>();
 		frame.getContentPane().removeAll();
 		frame.getContentPane().invalidate();
 		frame.getContentPane().add(panel);
 		frame.getContentPane().revalidate();
 		builder = new RelationsBuilder(fileString);
 		for (SingleRelationBuilder rel : builder.getRelations()) {
-			for (Long aaa : rel.getTrack()) {
-				PrimitiveId ggg = new SimplePrimitiveId(aaa,
-						OsmPrimitiveType.NODE);
-				prims0.add(ggg);
-			}
+			prims0.addAll(rel.getNecessaryPrimitives());
 		}
 		for(Long id1 : builder.getNecessaryRelations()) {
 			PrimitiveId ggg = new SimplePrimitiveId(id1,
 					OsmPrimitiveType.RELATION);
 			prims0.add(ggg);
 		}
-		
-		GownoTask dd = new GownoTask(false, prims0, false, false, "",
+		List <PrimitiveId> lis = new ArrayList<>();
+		lis.addAll(prims0);
+		DownloadNecessaryObjectsZtmToOsm dd = new DownloadNecessaryObjectsZtmToOsm(false, lis, false, false, "",
 				null, this);
 		dd.run();
 	}

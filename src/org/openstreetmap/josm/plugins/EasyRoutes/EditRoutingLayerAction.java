@@ -13,10 +13,10 @@ import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectExc
 import org.openstreetmap.josm.tools.ImageProvider;
 
 
-public class ZiwAction extends MapMode {
+public class EditRoutingLayerAction extends MapMode {
 
 MapView mv;
-    public ZiwAction(MapFrame mapFrame) {
+    public EditRoutingLayerAction(MapFrame mapFrame) {
         // TODO Use constructor with shortcut
         super(tr("Routing"), "dzik",
                 tr("Click and drag to move destination"),

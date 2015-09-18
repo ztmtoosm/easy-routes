@@ -9,7 +9,6 @@ import java.util.PriorityQueue;
 
 public class DijkstraData {
 	List<RoutingNode> wezly;
-
 	public DijkstraData() {
 		wezly = new ArrayList<RoutingNode>();
 	}
@@ -17,9 +16,8 @@ public class DijkstraData {
 	public void add(RoutingNode w) {
 		wezly.add(w);
 	}
-
-	public List<RoutingNode> calculate(RoutingNode p, RoutingNode k)
-			throws NodeConnectException {
+	
+	public Map<RoutingNode, RoutingNode> calculateCore(RoutingNode p, RoutingNode k) {
 		for (RoutingNode w : wezly) {
 			w.distanceToStart = RoutingNode.MAX_DISTANCE;
 			w.isVisited = false;
@@ -36,6 +34,11 @@ public class DijkstraData {
 			if (x == k)
 				ok = false;
 		}
+		return pop;
+	}
+	public List<RoutingNode> calculate(RoutingNode p, RoutingNode k)
+			throws NodeConnectException {
+		Map<RoutingNode, RoutingNode> pop = calculateCore(p,k);
 		RoutingNode akt = k;
 		List<RoutingNode> wynik = new ArrayList<RoutingNode>();
 		while (pop.containsKey(akt)) {
@@ -52,5 +55,10 @@ public class DijkstraData {
 		Collections.reverse(wynik);
 		return wynik;
 	}
-
+	public double calculateDistance(RoutingNode p, RoutingNode k) throws NodeConnectException {
+		calculateCore(p,k);
+		if(k.getOdleglosc()==RoutingNode.MAX_DISTANCE)
+			throw new NodeConnectException();
+		return k.getOdleglosc();
+	}
 }

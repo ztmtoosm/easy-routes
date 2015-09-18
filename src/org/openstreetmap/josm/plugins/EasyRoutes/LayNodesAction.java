@@ -17,7 +17,7 @@ import org.openstreetmap.josm.gui.Notification;
 
 public final class LayNodesAction extends JosmAction {
     public LayNodesAction() {
-        super(tr("NEW LAYER TEST"), null, tr("NEW LAYER TEST"),
+        super(tr("Nodes to layer"), null, tr("test"),
         		null, true, true);
     }
 
@@ -36,7 +36,7 @@ public final class LayNodesAction extends JosmAction {
                     .show();
         }
         RoutingLayer lay;
-		lay = new RoutingLayer(selection2, "xxx", new WaySplitter(Main.pref.getArray("easy-routes.weights")));
+		lay = new RoutingLayer(selection2, "xxx", new RoutingSpecial(Main.pref.getArray("easy-routes.weights")));
 	       Main.main.addLayer(lay);
     }
 
