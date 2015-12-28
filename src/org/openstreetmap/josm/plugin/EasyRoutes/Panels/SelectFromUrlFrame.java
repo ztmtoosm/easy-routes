@@ -30,7 +30,7 @@ import org.openstreetmap.josm.Main;
 
 public class SelectFromUrlFrame extends JFrame {
 	
-	private void getCities(List<String> server, List<String> city) {
+	public static void getCities(List<String> server, List<String> city) {
 		Collection<Collection<String> > servers = Main.pref.getArray("easy-routes.server");
 		for(Collection<String> foo : servers) {
 			Iterator it1=foo.iterator();
@@ -137,7 +137,7 @@ public class SelectFromUrlFrame extends JFrame {
 	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
 	    return s.hasNext() ? s.next() : "";
 	}
-	String downUrl(String url) {
+	public static String downUrl(String url) {
 		String charset = "UTF-8";  // Or in Java 7 and later, use the constant: java.nio.charset.StandardCharsets.UTF_8.name()
 		String param1 = "value1";
 		String param2 = "value2";

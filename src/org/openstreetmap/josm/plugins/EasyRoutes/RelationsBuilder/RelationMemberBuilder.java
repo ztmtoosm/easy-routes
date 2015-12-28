@@ -1,5 +1,7 @@
 package org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder;
 
+import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
+
 
 public class RelationMemberBuilder {
 	public RelationMemberBuilder(long id, String role,
@@ -26,5 +28,12 @@ public class RelationMemberBuilder {
 			return RelationMemberType.WAY;
 		return RelationMemberType.RELATION;
 	}
-	
+	public OsmPrimitiveType getPrimitiveType()
+	{
+		if(category==RelationMemberType.NODE)
+			return OsmPrimitiveType.NODE;
+		if(category==RelationMemberType.WAY)
+			return OsmPrimitiveType.WAY;
+		return OsmPrimitiveType.RELATION;
+	}
 }

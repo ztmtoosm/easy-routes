@@ -54,12 +54,7 @@ public class SingleRelationBuilder {
 			{
 				System.out.println("ID DO DODANIA "+y.id+" "+y.category);
 				OsmPrimitive memb = null;
-				if(y.category==RelationMemberType.NODE)
-					memb = Main.main.getCurrentDataSet().getPrimitiveById(y.id, OsmPrimitiveType.NODE);
-				if(y.category==RelationMemberType.WAY)
-					memb = Main.main.getCurrentDataSet().getPrimitiveById(y.id, OsmPrimitiveType.WAY);
-				if(y.category==RelationMemberType.RELATION)
-					memb = Main.main.getCurrentDataSet().getPrimitiveById(y.id, OsmPrimitiveType.RELATION);
+				memb = Main.main.getCurrentDataSet().getPrimitiveById(y.id, y.getPrimitiveType());
 				member = new RelationMember(role, memb);
 			}
 			x.addMember(member);
@@ -200,7 +195,7 @@ public class SingleRelationBuilder {
 		}
 		
 	}
-	void onLoadRouting() {
+	String onLoadRouting() {
 		if(getTrackNodes().size()>1) {
 			String name = "";
 			if(tags.containsKey("name"))
@@ -208,9 +203,12 @@ public class SingleRelationBuilder {
 			if(splitters.get(track_type) == null || splitters.get(track_type).getDataSet()!=Main.main.getCurrentDataSet()) {
 				splitters.put(track_type, new RoutingSpecial(Main.pref.getArray("easy-routes.weights."+track_type)));
 			}
-			lay = new RoutingLayer(getTrackNodes(), name, splitters.get(track_type));
+			
+			lay = new RoutingLayer(getTrackNodes(), getNecessaryPrimitives2(), name, splitters.get(track_type));
 			Main.main.addLayer(lay);
+			return tags.get("ref");
 		}
+		return null;
 	}
 	public void eraseLayer() {
 		if(lay!=null)
@@ -220,10 +218,14 @@ public class SingleRelationBuilder {
 			Main.main.removeLayer(lay);
 		}
 	}
-	public Collection<PrimitiveId> getNecessaryPrimitives() {
+
+	public Collection<PrimitiveId> getNecessaryPrimitives(boolean withTrack) {
 		List <PrimitiveId> wyn = new ArrayList<PrimitiveId>();
-		for(Long x : getTrack()) {
-			wyn.add(new SimplePrimitiveId(x, OsmPrimitiveType.NODE));
+		if(withTrack)
+		{
+			for(Long x : getTrack()) {
+				wyn.add(new SimplePrimitiveId(x, OsmPrimitiveType.NODE));
+			}
 		}
 		for(RelationMemberBuilder x : relationMembers) {
 			PrimitiveId id = null;
@@ -237,6 +239,18 @@ public class SingleRelationBuilder {
 					id = new SimplePrimitiveId(x.id, OsmPrimitiveType.RELATION);
 				wyn.add(id);
 			}
+		}
+		return wyn;
+	}
+	public Collection<PrimitiveId> getNecessaryPrimitives() {
+		return getNecessaryPrimitives(true);
+	}
+	public List<OsmPrimitive> getNecessaryPrimitives2() {
+		List <OsmPrimitive> wyn = new ArrayList<OsmPrimitive>();	
+		for(PrimitiveId idx : getNecessaryPrimitives(false)) {
+			OsmPrimitive prim = Main.main.getCurrentDataSet().getPrimitiveById(idx);
+			if(prim != null)
+				wyn.add(prim);
 		}
 		return wyn;
 	}

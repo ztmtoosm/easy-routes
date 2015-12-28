@@ -19,6 +19,8 @@ import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.Node;
+import org.openstreetmap.josm.data.osm.OsmPrimitive;
+import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.data.osm.event.AbstractDatasetChangedEvent;
 import org.openstreetmap.josm.data.osm.event.DataSetListenerAdapter;
@@ -34,6 +36,8 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 	Node selectedNode;
 	public RoutingSpecial ws;
 	MapView mv;
+	String desc;
+	List<OsmPrimitive> otherNodes;
 	
 	public List <Node> getAllNodes() {
 		if(middleNodes==null)
@@ -71,10 +75,11 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		return wynik;
 	}
 	
-	String desc;
+
 	
-	public RoutingLayer(List<Node> crucialNodes, String description, RoutingSpecial ws) {
+	public RoutingLayer(List<Node> crucialNodes, List<OsmPrimitive> otherNodes, String description, RoutingSpecial ws) {
 		super(description);
+		this.otherNodes = otherNodes;
 		setVisible(false);
 		desc = description;
 		this.crucialNodes = crucialNodes;
@@ -209,6 +214,30 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 	}
 	@Override
 	public void paint(Graphics2D g, MapView mv, Bounds bounds) {
+		Color poczatkowy = new Color(255, 200, 0, 128);
+		for(int i=0; i<otherNodes.size(); i++)
+		{
+			if(otherNodes.get(i).getType()==OsmPrimitiveType.NODE)
+			{
+				//smr.drawNode((Node) otherNodes.get(i), poczatkowy, 15, true);
+				/*
+				Node akt = (Node) otherNodes.get(i);
+				g.setColor(poczatkowy);
+				Point pa = mv.getPoint(akt.getCoor());
+				g.fillOval(pa.x - 10, pa.y - 10, 20, 20);	*/			
+			}
+			if(otherNodes.get(i).getType()==OsmPrimitiveType.WAY)
+			{
+				//smr.drawWay(way, color, line, dashes, dashedColor, offset, showOrientation, showHeadArrowOnly, showOneway, onewayReversed);
+				//smr.drawWay((Way) otherNodes.get(i), poczatkowy, new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND), new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND), poczatkowy, 0, false, false, false, true);
+				/*
+				Node akt = (Node) otherNodes.get(i);
+				g.setColor(poczatkowy);
+				Point pa = mv.getPoint(akt.getCoor());
+				g.fillOval(pa.x - 10, pa.y - 10, 20, 20);	*/			
+			}
+		}
+		
 		boolean selected = true;
 		this.mv = mv;
 		if (middleNodes == null)

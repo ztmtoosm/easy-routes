@@ -96,6 +96,7 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 		jMenu.add(new JMenuItem(new Con2NoAc()));
 		jMenu.add(new JMenuItem(new ZtmToOsmAction()));
 		jMenu.add(new JMenuItem(new PTAction()));
+		jMenu.add(new JMenuItem(new PrzystankiAction()));
 	}
 
 	@Override

@@ -4,6 +4,7 @@ package org.openstreetmap.josm.plugins.EasyRoutes;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public final class LayNodesAction extends JosmAction {
                     .show();
         }
         RoutingLayer lay;
-		lay = new RoutingLayer(selection2, "xxx", new RoutingSpecial(Main.pref.getArray("easy-routes.weights")));
+		lay = new RoutingLayer(selection2, new ArrayList<OsmPrimitive>(), "xxx", new RoutingSpecial(Main.pref.getArray("easy-routes.weights")));
 	       Main.main.addLayer(lay);
     }
 
