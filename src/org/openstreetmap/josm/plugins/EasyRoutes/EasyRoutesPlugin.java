@@ -88,7 +88,7 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 		setPrefOnInit(typicalPref(), "easy-routes.weights");
 		setPrefOnInit(typicalPref(), "easy-routes.weights.bus");
 		setPrefOnInit(railwayPref(), "easy-routes.weights.tram");
-		JMenu jMenu = Main.main.menu.addMenu("easy-routes", KeyEvent.VK_COMMA, Main.main.menu.getDefaultMenuPos(), "help");
+		JMenu jMenu = Main.main.menu.addMenu("easy-routes","easy-routes", KeyEvent.VK_COMMA, Main.main.menu.getDefaultMenuPos(), "help");
 		jMenu.add(new JMenuItem(new ConnectNodesAction()));
 		preferences = (EasyRoutesPreference) new EasyRoutesPreference.Factory()
 				.createPreferenceSetting();

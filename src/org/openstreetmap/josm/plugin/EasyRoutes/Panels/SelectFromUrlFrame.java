@@ -24,6 +24,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.openstreetmap.josm.Main;
@@ -82,7 +83,7 @@ public class SelectFromUrlFrame extends JFrame {
 					JComboBox cb = (JComboBox)ae.getSource();
 					int pos=cb.getSelectedIndex();
 					
-					 String wynik=downUrl(l1.get(pos)+"List"+l2.get(pos)+".json");
+					 String wynik=downUrl(l1.get(pos)+"ListExtr"+l2.get(pos)+".json");
 					 hand.foo(wynik, l1.get(pos), l2.get(pos));
 				}});
 		pan.add(foox);
@@ -94,14 +95,14 @@ public class SelectFromUrlFrame extends JFrame {
 	void foo(String tab, final String server, final String city) {
 		
 		JSONParser parser = new JSONParser();
-		Object obj;
+		JSONObject obj;
 		
 		try {
-			obj = parser.parse(tab);
-			JSONArray array = (JSONArray) obj;
+			obj = (JSONObject)parser.parse(tab);
+			JSONArray array = (JSONArray) obj.get("doPrzerobienia");
 			wybor = new String[array.size()];
 			for (int i = 0; i < array.size(); i++) {
-				String obb = (String) array.get(i);
+				String obb = (String) ((JSONObject) array.get(i)).get("id");
 				wybor[i] = obb;
 			}
 		} catch (ParseException e2) {

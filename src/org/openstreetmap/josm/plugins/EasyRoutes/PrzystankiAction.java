@@ -2,12 +2,15 @@ package org.openstreetmap.josm.plugins.EasyRoutes;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 
-import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -21,11 +24,23 @@ import org.json.simple.parser.ParseException;
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.coor.LatLon;
+import org.openstreetmap.josm.data.osm.DataSet;
+import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SamPrzystanekPanel;
 import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SelectFromUrlFrame;
 
 public class PrzystankiAction extends JosmAction {
-	
+	LolMode mod;
+	public enum TrybClick
+	{
+		NONE, STOP, POSITION, STOP_AND_POSITION
+	}
+	TrybClick aktTryb = TrybClick.POSITION;
+	public void updateTryb(TrybClick tryb)
+	{
+		aktTryb = tryb;
+		Main.map.selectMapMode(mod);
+	}
 	public static LatLon getLatLon(JSONObject obj, String keyLat, String keyLon)
 	{
 		double lat = 0;
@@ -65,7 +80,7 @@ public class PrzystankiAction extends JosmAction {
 	JFrame frame;
 	JPanel pan = new JPanel();
 	JPanel pan2;
-	JPanel pan3;
+	SamPrzystanekPanel pan3;
 	PrzystankiLayer lay;
     public PrzystankiAction() {
         super(tr("Przystanki"), null, tr("aaaaaaaaaa"),
@@ -73,6 +88,7 @@ public class PrzystankiAction extends JosmAction {
     }
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		mod = new LolMode(Main.map, this);
 		lay = new PrzystankiLayer();
 	       Main.main.addLayer(lay);
 		 frame = new JFrame("BoxLayoutDemo");
@@ -86,6 +102,7 @@ public class PrzystankiAction extends JosmAction {
 		for(int i=0; i<l1.size(); i++)
 			l3[i]=l1.get(i)+" "+l2.get(i);
 		 JComboBox foox = new JComboBox(l3);
+		 foox.setMaximumSize(new Dimension(600, 40));
 		 final PrzystankiAction hand = this;
 			foox.addActionListener(new ActionListener() {
 				@Override
@@ -97,6 +114,7 @@ public class PrzystankiAction extends JosmAction {
 				}});
 			pan.setLayout(new BoxLayout(pan, BoxLayout.PAGE_AXIS));
 		pan.add(foox);
+		pan.add(Box.createVerticalGlue());
 		 frame.add(pan);
 	}
 	void dupa(String tab)
@@ -105,7 +123,7 @@ public class PrzystankiAction extends JosmAction {
 		if(pan2!=null)
 			pan.remove(pan2);
 		pan2 = new JPanel();
-		pan2.setLayout(new FlowLayout());
+		pan2.setLayout(new BoxLayout(pan2, BoxLayout.PAGE_AXIS));
 		pan.add(pan2);
 		JSONParser parser = new JSONParser();
 		Object obj;
@@ -117,9 +135,10 @@ public class PrzystankiAction extends JosmAction {
 			for (int i = 0; i < array.size(); i++) {
 				JSONObject obb = (JSONObject) array.get(i);
 				String foo = (String)obb.get("long_name");
-				l5[i] = foo + " " + getLatLonShortInfo(obb);
+				l5[i] = foo + "(" +(String)obb.get("id")+ ") " + getLatLonShortInfo(obb);
 			}
 			JComboBox foo9 = new JComboBox(l5);
+			foo9.setMaximumSize(new Dimension(600, 40));
 			final PrzystankiAction hand = this;
 			foo9.addActionListener(new ActionListener() {
 				@Override
@@ -129,6 +148,7 @@ public class PrzystankiAction extends JosmAction {
 					dupa2((JSONObject) array.get(pos));
 				}});
 			pan2.add(foo9);
+			pan2.add(Box.createVerticalGlue());
 		} catch (ParseException e2) {
 			e2.printStackTrace();
 		}
@@ -138,10 +158,9 @@ public class PrzystankiAction extends JosmAction {
 	{
 		if(pan3!=null)
 			pan2.remove(pan3);
-		pan3 = new SamPrzystanekPanel(obj);
+		pan3 = new SamPrzystanekPanel(obj, this);
 		pan2.add(pan3);
-		LolMode mod = new LolMode(Main.map);
-		Main.map.selectMapMode(mod);
+		
 		LatLon ll1 = getLatLon(obj, "lat", "lon");
 		LatLon ll2 = getLatLon(obj, "lat2", "lon2");
 		lay.setLatLon(ll1, ll2);
@@ -149,5 +168,47 @@ public class PrzystankiAction extends JosmAction {
 		LatLon ll3 = getAvgLatLon(ll1, ll2);
 		if(ll3 != null)
 			Main.map.mapView.zoomTo(ll3);
+	}
+	public void receiveClickedLatLon(LatLon ll)
+	{
+		if(pan3 == null)
+			return;
+		JSONObject obj = pan3.obj;
+		if(obj == null)
+			return;
+    	Map<String, String> keys = new HashMap();
+    	keys.put("name", (String) obj.get("long_name"));
+    	keys.put("ref", (String) obj.get("id"));
+    	Node n = new Node(ll);
+		DataSet ds = Main.main.getCurrentDataSet();
+		if(aktTryb == TrybClick.STOP)
+		{
+	    	keys.put("highway", "bus_stop");
+	    	n.setKeys(keys);
+	    	ds.addPrimitive(n);
+	    	Main.map.repaint();
+		}
+		if(aktTryb == TrybClick.POSITION)
+		{
+	    	keys.put("public_transport", "stop_position");
+	    	n.setKeys(keys);
+	    	ds.addPrimitive(n);
+	    	PseudoActionM.actionPerformed(n);
+	    	Main.map.repaint();
+		}
+		if(aktTryb == TrybClick.STOP_AND_POSITION)
+		{
+	    	keys.put("highway", "bus_stop");
+	    	keys.put("public_transport", "stop_position");
+	    	n.setKeys(keys);
+	    	ds.addPrimitive(n);
+	    	PseudoActionM.actionPerformed(n);
+	    	Main.map.repaint();
+		}	
+	}
+	public void onExitMode()
+	{
+		aktTryb = TrybClick.NONE;
+		pan3.onExitMode();
 	}
 }

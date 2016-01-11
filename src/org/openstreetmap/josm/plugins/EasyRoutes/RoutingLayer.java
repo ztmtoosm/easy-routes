@@ -219,12 +219,10 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		{
 			if(otherNodes.get(i).getType()==OsmPrimitiveType.NODE)
 			{
-				//smr.drawNode((Node) otherNodes.get(i), poczatkowy, 15, true);
-				/*
 				Node akt = (Node) otherNodes.get(i);
 				g.setColor(poczatkowy);
 				Point pa = mv.getPoint(akt.getCoor());
-				g.fillOval(pa.x - 10, pa.y - 10, 20, 20);	*/			
+				g.fillOval(pa.x - 10, pa.y - 10, 20, 20);	
 			}
 			if(otherNodes.get(i).getType()==OsmPrimitiveType.WAY)
 			{
