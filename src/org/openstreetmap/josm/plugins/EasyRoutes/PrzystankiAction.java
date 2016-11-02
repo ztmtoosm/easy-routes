@@ -26,8 +26,8 @@ import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SamPrzystanekPanel;
-import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SelectFromUrlFrame;
+import org.openstreetmap.josm.plugins.EasyRoutes.Panels.SamPrzystanekPanel;
+import org.openstreetmap.josm.plugins.EasyRoutes.Panels.SelectFromUrlFrame;
 
 public class PrzystankiAction extends JosmAction {
 	LolMode mod;
@@ -90,7 +90,7 @@ public class PrzystankiAction extends JosmAction {
 	public void actionPerformed(ActionEvent e) {
 		mod = new LolMode(Main.map, this);
 		lay = new PrzystankiLayer();
-	       Main.main.addLayer(lay);
+	       Main.getLayerManager().addLayer(lay);
 		 frame = new JFrame("BoxLayoutDemo");
 		 frame.setVisible(true);
 		 frame.setSize(400, 200);
@@ -180,7 +180,7 @@ public class PrzystankiAction extends JosmAction {
     	keys.put("name", (String) obj.get("long_name"));
     	keys.put("ref", (String) obj.get("id"));
     	Node n = new Node(ll);
-		DataSet ds = Main.main.getCurrentDataSet();
+		DataSet ds = Main.getLayerManager().getEditDataSet();
 		if(aktTryb == TrybClick.STOP)
 		{
 	    	keys.put("highway", "bus_stop");

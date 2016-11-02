@@ -27,10 +27,10 @@ public final class ConnectNodesAction extends JosmAction {
 					.getArray("easy-routes.weights");
 			RoutingSpecial ws = new RoutingSpecial(aktPreferences);
 			ws.splitWays(lis);
-			getCurrentDataSet().clearSelection();
+			Main.getLayerManager().getEditDataSet().clearSelection();
 			List<Way> xd = ws.getWaysAfterSplit(lis);
 			for (Way x : xd) {
-				getCurrentDataSet().addSelected(x);
+				Main.getLayerManager().getEditDataSet().addSelected(x);
 			}
 		} catch (NodeConnectException e) {
 			e.printStackTrace();
@@ -82,8 +82,8 @@ public final class ConnectNodesAction extends JosmAction {
 			} else {
 				foo3(tnl(lis.get(0).lastNode(), lis.get(1).lastNode()));				
 			}
-			getCurrentDataSet().addSelected(lis.get(0));
-			getCurrentDataSet().addSelected(lis.get(1));
+			Main.getLayerManager().getEditDataSet().addSelected(lis.get(0));
+			Main.getLayerManager().getEditDataSet().addSelected(lis.get(1));
 	}
 
 	public ConnectNodesAction() {
@@ -99,7 +99,7 @@ public final class ConnectNodesAction extends JosmAction {
 		if (!isEnabled() || !Main.map.mapView.isActiveLayerVisible())
 			return;
 
-		Collection<OsmPrimitive> selection = getCurrentDataSet().getSelected();
+		Collection<OsmPrimitive> selection = Main.getLayerManager().getEditDataSet().getSelected();
 		List<Node> selection2 = OsmPrimitive.getFilteredList(selection,
 				Node.class);
 		List<Way> selection3 = OsmPrimitive.getFilteredList(selection,
@@ -117,10 +117,10 @@ public final class ConnectNodesAction extends JosmAction {
 
 	@Override
 	protected void updateEnabledState() {
-		if (getCurrentDataSet() == null) {
+		if (Main.getLayerManager().getEditDataSet() == null) {
 			setEnabled(false);
 		} else {
-			updateEnabledState(getCurrentDataSet().getSelected());
+			updateEnabledState(Main.getLayerManager().getEditDataSet().getSelected());
 		}
 	}
 

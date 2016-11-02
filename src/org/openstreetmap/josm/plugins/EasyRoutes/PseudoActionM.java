@@ -2,34 +2,18 @@ package org.openstreetmap.josm.plugins.EasyRoutes;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.openstreetmap.josm.Main;
-import org.openstreetmap.josm.command.ChangeCommand;
-import org.openstreetmap.josm.command.Command;
-import org.openstreetmap.josm.command.MoveCommand;
-import org.openstreetmap.josm.command.SequenceCommand;
 import org.openstreetmap.josm.data.coor.EastNorth;
 import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.data.osm.OsmPrimitive;
-import org.openstreetmap.josm.data.osm.Way;
-import org.openstreetmap.josm.data.osm.WaySegment;
-import org.openstreetmap.josm.data.projection.Projections;
 import org.openstreetmap.josm.tools.Geometry;
-import org.openstreetmap.josm.tools.MultiMap;
 
 public class PseudoActionM{
 
 
-    static void actionPerformed(Node n) {
+    static void actionPerformed(Node n) {/*
     	boolean joinWayToNode = true;
             Collection<Node> selectedNodes = new LinkedList<>();
             selectedNodes.add(n);
@@ -42,7 +26,7 @@ public class PseudoActionM{
             // Planning phase: decide where we'll insert the nodes and put it all in "data"
             for (Node node : selectedNodes) {
                 List<WaySegment> wss = Main.map.mapView.getNearestWaySegments(
-                        Main.map.mapView.getPoint(node), OsmPrimitive.isSelectablePredicate);
+                        Main.map.mapView.getPoint(node), OsmPrimitive);
 
                 MultiMap<Way, Integer> insertPoints = new MultiMap<>();
                 for (WaySegment ws : wss) {
@@ -108,7 +92,7 @@ public class PseudoActionM{
 
             if (cmds.isEmpty()) return;
             Main.main.undoRedo.add(new SequenceCommand("Siejbik".toString(), cmds));
-            Main.map.repaint();
+            Main.map.repaint();*/
         }
 
     private static SortedSet<Integer> pruneSuccs(Collection<Integer> is) {

@@ -27,7 +27,7 @@ public final class LayNodesAction extends JosmAction {
         if (!isEnabled() || !Main.map.mapView.isActiveLayerVisible())
             return;
 
-        Collection<OsmPrimitive> selection = getCurrentDataSet().getSelected();
+        Collection<OsmPrimitive> selection = Main.getLayerManager().getEditDataSet().getSelected();
         List<Node> selection2 = OsmPrimitive.getFilteredList(selection, Node.class);
         if(selection2.size()<=1)
         {
@@ -38,15 +38,15 @@ public final class LayNodesAction extends JosmAction {
         }
         RoutingLayer lay;
 		lay = new RoutingLayer(selection2, new ArrayList<OsmPrimitive>(), "xxx", new RoutingSpecial(Main.pref.getArray("easy-routes.weights")));
-	       Main.main.addLayer(lay);
+	       Main.getLayerManager().addLayer(lay);
     }
 
     @Override
     protected void updateEnabledState() {
-        if (getCurrentDataSet() == null) {
+        if (Main.getLayerManager().getEditDataSet() == null) {
             setEnabled(false);
         } else {
-            updateEnabledState(getCurrentDataSet().getSelected());
+            updateEnabledState(Main.getLayerManager().getEditDataSet().getSelected());
         }
     }
 

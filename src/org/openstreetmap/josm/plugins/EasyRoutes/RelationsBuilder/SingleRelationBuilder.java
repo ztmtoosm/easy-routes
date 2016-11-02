@@ -54,7 +54,7 @@ public class SingleRelationBuilder {
 			{
 				System.out.println("ID DO DODANIA "+y.id+" "+y.category);
 				OsmPrimitive memb = null;
-				memb = Main.main.getCurrentDataSet().getPrimitiveById(y.id, y.getPrimitiveType());
+				memb = Main.getLayerManager().getEditDataSet().getPrimitiveById(y.id, y.getPrimitiveType());
 				member = new RelationMember(role, memb);
 			}
 			x.addMember(member);
@@ -121,7 +121,7 @@ public class SingleRelationBuilder {
 		}
 		return wynik;
 	}
-	private void parentRelFromJson(JSONArray array, int przesuniecieUjemne) {
+	void parentRelFromJson(JSONArray array, int przesuniecieUjemne) {
 		if(array==null)
 			return;
 		for (int j = 0; j < array.size(); j++) {
@@ -132,7 +132,7 @@ public class SingleRelationBuilder {
 		}
 	}
 	
-	private void tagsFromJson(JSONArray array) {
+	void tagsFromJson(JSONArray array) {
 		for (int j = 0; j < array.size(); j++) {
 			JSONObject xd = (JSONObject) array.get(j);
 			String key = (String)xd.get("key");
@@ -141,7 +141,7 @@ public class SingleRelationBuilder {
 		}
 	}
 	
-	private void relMembFromJson(JSONArray array, int przesuniecieUjemne) {
+	void relMembFromJson(JSONArray array, int przesuniecieUjemne) {
 		for (int j = 0; j < array.size(); j++) {
 			JSONObject xd = (JSONObject) array.get(j);
 			String id = (String)xd.get("id");
@@ -188,7 +188,7 @@ public class SingleRelationBuilder {
 		trackNodes = new ArrayList<Node>();
 		for(long x : track) {
 			PrimitiveId pid = new SimplePrimitiveId(x, OsmPrimitiveType.NODE);
-			Node n = (Node) Main.main.getCurrentDataSet().getPrimitiveById(pid);
+			Node n = (Node) Main.getLayerManager().getEditDataSet().getPrimitiveById(pid);
 			if(n!=null) {
 				trackNodes.add(n);
 			}
@@ -200,12 +200,12 @@ public class SingleRelationBuilder {
 			String name = "";
 			if(tags.containsKey("name"))
 				name = tags.get("name")+" ["+id+"]";
-			if(splitters.get(track_type) == null || splitters.get(track_type).getDataSet()!=Main.main.getCurrentDataSet()) {
+			if(splitters.get(track_type) == null || splitters.get(track_type).getDataSet()!=Main.getLayerManager().getEditDataSet()) {
 				splitters.put(track_type, new RoutingSpecial(Main.pref.getArray("easy-routes.weights."+track_type)));
 			}
 			
 			lay = new RoutingLayer(getTrackNodes(), getNecessaryPrimitives2(), name, splitters.get(track_type));
-			Main.main.addLayer(lay);
+			Main.getLayerManager().addLayer(lay);
 			return tags.get("ref");
 		}
 		return null;
@@ -215,7 +215,7 @@ public class SingleRelationBuilder {
 		{
 			if(lay.ws!=null)
 				lay.ws.unregisterListener(lay);
-			Main.main.removeLayer(lay);
+			Main.getLayerManager().removeLayer(lay);
 		}
 	}
 
@@ -248,7 +248,7 @@ public class SingleRelationBuilder {
 	public List<OsmPrimitive> getNecessaryPrimitives2() {
 		List <OsmPrimitive> wyn = new ArrayList<OsmPrimitive>();	
 		for(PrimitiveId idx : getNecessaryPrimitives(false)) {
-			OsmPrimitive prim = Main.main.getCurrentDataSet().getPrimitiveById(idx);
+			OsmPrimitive prim = Main.getLayerManager().getEditDataSet().getPrimitiveById(idx);
 			if(prim != null)
 				wyn.add(prim);
 		}

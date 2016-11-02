@@ -44,8 +44,8 @@ public class RoutingSpecial implements DataSetListener  {
 	private DataSet ds = null;
 	public RoutingSpecial(Collection<Collection<String>> aktPreferences) {
 		this.aktPreferences = aktPreferences;
-		Main.main.getCurrentDataSet().addDataSetListener(this);
-		ds = Main.main.getCurrentDataSet();
+		Main.getLayerManager().getEditDataSet().addDataSetListener(this);
+		ds = Main.getLayerManager().getEditDataSet();
 	}
 	public DataSet getDataSet() {
 		return ds;
@@ -53,8 +53,8 @@ public class RoutingSpecial implements DataSetListener  {
 	int licznik=0;
 	private void updateAllData() {
 		licznik++;
-		System.out.println("UPDATE ALL DATA "+licznik+" "+Main.main.getCurrentDataSet()+" "+ds);
-		DataSet dataSet = Main.main.getCurrentDataSet();
+		System.out.println("UPDATE ALL DATA "+licznik+" "+Main.getLayerManager().getEditDataSet()+" "+ds);
+		DataSet dataSet = Main.getLayerManager().getEditDataSet();
 			connectedNodes = new TreeSet <Node>();
 			connections = new HashMap<Pair<Node, Node>, Way>();
 			Collection<Node> nodes = dataSet.getNodes();
@@ -256,7 +256,7 @@ public class RoutingSpecial implements DataSetListener  {
 				System.out.println("CHUNKS\n"+chunks+"\n LL \n"+ll);
 				if (e1.getValue().size() > 0 && chunks!=null) {
 					SplitWayResult sp = SplitWayAction.splitWay(
-							Main.map.mapView.getEditLayer(), akt, chunks, ll);
+							Main.getLayerManager().getEditLayer(), akt, chunks, ll);
 					Main.main.undoRedo.add(sp.getCommand());
 
 				}

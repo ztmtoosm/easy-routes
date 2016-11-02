@@ -1,10 +1,12 @@
-package org.openstreetmap.josm.plugin.EasyRoutes.Panels;
+package org.openstreetmap.josm.plugins.EasyRoutes.Panels;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+
+import javafx.util.Pair;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -16,7 +18,7 @@ import org.openstreetmap.josm.plugins.EasyRoutes.ZtmToOsmAction;
 public class SelectDownloadPanel extends JPanel {
 	final ZtmToOsmAction handler;
 	final List<Rectangle2D> toDownload;
-	public SelectDownloadPanel(final ZtmToOsmAction handler, List<Rectangle2D> toDown) {
+	public SelectDownloadPanel(final ZtmToOsmAction handler, List<Rectangle2D> toDown, List<Pair<String, String> > unsupportedStops) {
 		super();
 		this.toDownload = toDown;
 		this.handler = handler;
@@ -36,6 +38,12 @@ public class SelectDownloadPanel extends JPanel {
 		JButton but3 = new JButton("DALEJ");
 		add(but3);
 		setVisible(true);
+		String lll = "Unsupported\n";
+		for(Pair<String, String> x : unsupportedStops) {
+			lll += x.getKey() + " " + x.getValue()+"\n";
+		}
+		JLabel emptyLabel2 = new JLabel(lll);
+		add(emptyLabel2);
 		final SelectDownloadPanel pan = this;
 		
 		but.addActionListener(new ActionListener() {

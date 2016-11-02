@@ -19,10 +19,10 @@ import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectExc
 public final class Con2NoAc extends JosmAction {
 	void foo3(RoutingLayer l) {
 		try {
-			getCurrentDataSet().clearSelection();
+			Main.getLayerManager().getEditDataSet().clearSelection();
 			List<Way> xd = l.splitWays();
 			for (Way x : xd) {
-				getCurrentDataSet().addSelected(x);
+				Main.getLayerManager().getEditDataSet().addSelected(x);
 			}
 		} catch (NodeConnectException e) {
 			e.printStackTrace();
@@ -39,8 +39,8 @@ public final class Con2NoAc extends JosmAction {
 	public void actionPerformed(ActionEvent e) {
 		if (!isEnabled() || !Main.map.mapView.isActiveLayerVisible())
 			return;
-		if(Main.main.getActiveLayer().getClass()==RoutingLayer.class) {
-			RoutingLayer l = (RoutingLayer)Main.main.getActiveLayer();
+		if(Main.getLayerManager().getActiveLayer().getClass()==RoutingLayer.class) {
+			RoutingLayer l = (RoutingLayer)Main.getLayerManager().getActiveLayer();
 			if(l.crucialNodes!=null)
 				foo3(l);
 		}
@@ -49,9 +49,9 @@ public final class Con2NoAc extends JosmAction {
 	@Override
 	protected void updateEnabledState() {
 		setEnabled(false);
-		if(Main.main.getActiveLayer()==null)
+		if(Main.getLayerManager().getActiveLayer()==null)
 			return;
-		if(Main.main.getActiveLayer().getClass()==RoutingLayer.class) {
+		if(Main.getLayerManager().getActiveLayer().getClass()==RoutingLayer.class) {
 			setEnabled(true);
 		}
 	}

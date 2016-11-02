@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugin.EasyRoutes.Panels;
+package org.openstreetmap.josm.plugins.EasyRoutes.Panels;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

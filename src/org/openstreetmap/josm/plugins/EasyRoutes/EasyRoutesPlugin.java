@@ -11,13 +11,13 @@ import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Preferences;
 import org.openstreetmap.josm.gui.IconToggleButton;
 import org.openstreetmap.josm.gui.MapFrame;
-import org.openstreetmap.josm.gui.MapView.LayerChangeListener;
-import org.openstreetmap.josm.gui.layer.Layer;
+import org.openstreetmap.josm.gui.layer.OsmDataLayer;
+import org.openstreetmap.josm.gui.layer.OsmDataLayer.LayerStateChangeListener;
 import org.openstreetmap.josm.gui.preferences.PreferenceSetting;
 import org.openstreetmap.josm.plugins.Plugin;
 import org.openstreetmap.josm.plugins.PluginInformation;
 
-public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
+public class EasyRoutesPlugin extends Plugin implements LayerStateChangeListener {
 	private static EasyRoutesPreference preferences;
 
 	static JMenu jMenu;
@@ -104,7 +104,7 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 		return preferences;
 	}
 
-	@Override
+	/*@Override
 	public void activeLayerChange(Layer oldLayer, Layer newLayer) {
 		// TODO Auto-generated method stub
 
@@ -120,7 +120,7 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 	public void layerRemoved(Layer oldLayer) {
 		// TODO Auto-generated method stub
 
-	}
+	}*/
 
 	@Override
 	public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
@@ -130,5 +130,11 @@ public class EasyRoutesPlugin extends Plugin implements LayerChangeListener {
 					addRouteNodeAction);
 			newFrame.addMapMode(removeRouteNodeButton);
 		}
+	}
+
+	@Override
+	public void uploadDiscouragedChanged(OsmDataLayer layer, boolean newValue) {
+		// TODO Auto-generated method stub
+		
 	}
 }

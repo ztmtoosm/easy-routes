@@ -41,7 +41,7 @@ MapView mv;
 
     @Override public void mouseReleased(MouseEvent e) {
     	if(dragged) {
-    	Layer y = Main.main.getActiveLayer();
+    	Layer y = Main.getLayerManager().getActiveLayer();
     	if(y.getClass()==RoutingLayer.class) {
     		RoutingLayer yy = (RoutingLayer)(y);
     		try {
@@ -60,7 +60,7 @@ MapView mv;
 
     }
     @Override public void mouseClicked(MouseEvent e) {
-    	Layer y = Main.main.getActiveLayer();
+    	Layer y = Main.getLayerManager().getActiveLayer();
     	if(y.getClass()==RoutingLayer.class) {
     		RoutingLayer yy = (RoutingLayer)(y);
     		yy.addMiddleNode();
@@ -68,7 +68,7 @@ MapView mv;
     	
     }
     @Override public void mouseMoved(MouseEvent e) {
-    	Layer y = Main.main.getActiveLayer();
+    	Layer y = Main.getLayerManager().getActiveLayer();
     	if(y.getClass()==RoutingLayer.class) {
     		RoutingLayer yy = (RoutingLayer)(y);
     		yy.setProposedPoint(e.getX(), e.getY());

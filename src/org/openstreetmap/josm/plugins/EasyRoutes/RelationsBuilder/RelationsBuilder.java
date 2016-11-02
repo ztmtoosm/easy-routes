@@ -25,7 +25,6 @@ public class RelationsBuilder {
 	DiffLayer dff;
 	public RelationsBuilder(String[] jsonText) {
 		for(int j=0; j<jsonText.length; j++) {
-			System.out.println(jsonText[j]);
 			JSONParser parser = new JSONParser();
 			Object obj;
 			try {
@@ -40,7 +39,7 @@ public class RelationsBuilder {
 			}
 		}
 	}
-	public List <Long> getExistRelations()
+	/*public List <Long> getExistRelations()
 	{
 		List <Long> wynik = new ArrayList<>();
 		for(SingleRelationBuilder bul : relationList) {
@@ -48,7 +47,7 @@ public class RelationsBuilder {
 				wynik.add(bul.id);
 		}
 		return wynik;
-	}
+	}*/
 	public List <SingleRelationBuilder> getRelations() {
 		return new ArrayList<SingleRelationBuilder>(relationList);
 	}
@@ -70,7 +69,7 @@ public class RelationsBuilder {
 					rels.put(ref, new ArrayList<Relation>());
 				layers.get(ref).add(foo.lay);
 				if(foo.id>0)
-					rels.get(ref).add((Relation)Main.main.getCurrentDataSet().getPrimitiveById(foo.id, OsmPrimitiveType.RELATION));
+					rels.get(ref).add((Relation)Main.getLayerManager().getEditDataSet().getPrimitiveById(foo.id, OsmPrimitiveType.RELATION));
 			}
 		}
 		List <DiffLayerTech> tech = new ArrayList<>();
@@ -84,9 +83,9 @@ public class RelationsBuilder {
 			tech.add(new DiffLayerTech(rels2, e.getValue(), e.getKey()));
 		}
 		dff = new DiffLayer(tech);
-		Main.main.addLayer(dff);
+		Main.getLayerManager().addLayer(dff);
 	}
-	public Set <Long> getNecessaryRelations() {
+	/*public Set <Long> getNecessaryRelations() {
 		Set <Long> relList = new TreeSet<>();
 		Set <Long> relList2 = new TreeSet<>();
 		for(SingleRelationBuilder foo : relationList) {
@@ -97,7 +96,7 @@ public class RelationsBuilder {
 				relList2.add(x);
 		}
 		return relList2;
-	}
+	}*/
 	public void createNecessaryRelations() {
 		Set <Long> relList = new TreeSet<>();
 		for(SingleRelationBuilder foo : relationList) {
@@ -105,7 +104,7 @@ public class RelationsBuilder {
 		}
 		for(long x : relList) {
 			if(x>0) {
-				Relation rel = (Relation)Main.main.getCurrentDataSet().getPrimitiveById(x, OsmPrimitiveType.RELATION);
+				Relation rel = (Relation)Main.getLayerManager().getEditDataSet().getPrimitiveById(x, OsmPrimitiveType.RELATION);
 				relationMap.put(x, rel);
 			}
 			else {
@@ -119,7 +118,7 @@ public class RelationsBuilder {
 		for(long id : ids) {
 			Relation akt = relationMap.get(id);
 			if(id<0) {
-				Main.main.getCurrentDataSet().addPrimitive(akt);
+				Main.getLayerManager().getEditDataSet().addPrimitive(akt);
 			}
 		}
 		for(SingleRelationBuilder x : relationList) {
@@ -139,6 +138,6 @@ public class RelationsBuilder {
 			x.eraseLayer();
 		}
 		if(dff!=null)
-			Main.main.removeLayer(dff);
+			Main.getLayerManager().removeLayer(dff);
 	}
 }

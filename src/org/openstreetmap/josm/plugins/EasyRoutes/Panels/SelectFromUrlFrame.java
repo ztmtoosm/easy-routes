@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugin.EasyRoutes.Panels;
+package org.openstreetmap.josm.plugins.EasyRoutes.Panels;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -39,7 +39,7 @@ public class SelectFromUrlFrame extends JFrame {
 			{
 				String serverName = (String) it1.next();
 				System.out.println(serverName);
-				String wynik=downUrl(serverName+"List.json");
+				String wynik=downUrl(serverName+"lst");
 				JSONParser parser = new JSONParser();
 				Object obj;
 				try {
@@ -68,8 +68,8 @@ public class SelectFromUrlFrame extends JFrame {
 		 setLocationRelativeTo(null);
 		 add(pan);
 		pan.setLayout(new BoxLayout(pan, BoxLayout.PAGE_AXIS));
-		final List<String> l1 = new ArrayList<>();
-		final List<String> l2 = new ArrayList<>();
+		final List<String> l1 = new ArrayList<String>();
+		final List<String> l2 = new ArrayList<String>();
 		getCities(l1,l2);
 		String[] l3 = new String[l1.size()];
 		for(int i=0; i<l1.size(); i++)
@@ -83,7 +83,7 @@ public class SelectFromUrlFrame extends JFrame {
 					JComboBox cb = (JComboBox)ae.getSource();
 					int pos=cb.getSelectedIndex();
 					
-					 String wynik=downUrl(l1.get(pos)+"ListExtr"+l2.get(pos)+".json");
+					 String wynik=downUrl(l1.get(pos)+"apiline2");
 					 hand.foo(wynik, l1.get(pos), l2.get(pos));
 				}});
 		pan.add(foox);
@@ -95,15 +95,16 @@ public class SelectFromUrlFrame extends JFrame {
 	void foo(String tab, final String server, final String city) {
 		
 		JSONParser parser = new JSONParser();
-		JSONObject obj;
 		
 		try {
-			obj = (JSONObject)parser.parse(tab);
-			JSONArray array = (JSONArray) obj.get("doPrzerobienia");
+			JSONObject baseObject = (JSONObject)parser.parse(tab);
+			
+			JSONArray array = (JSONArray)baseObject.get("lines");
+			System.out.println(tab);
 			wybor = new String[array.size()];
 			for (int i = 0; i < array.size(); i++) {
-				String obb = (String) ((JSONObject) array.get(i)).get("id");
-				wybor[i] = obb;
+				
+				wybor[i] = (String) ((JSONObject)array.get(i)).get("lin");
 			}
 		} catch (ParseException e2) {
 			e2.printStackTrace();
@@ -169,7 +170,7 @@ public class SelectFromUrlFrame extends JFrame {
 			int wyb = wybs[i];
 			if(wyb>=0) {
 				String xx = sciezki.get(i);
-				String wynik=downUrl(server+"js"+city+xx+".json");
+				String wynik=downUrl(server+"apiline2/"+xx);
 				arr.add(wynik);
 
 			}

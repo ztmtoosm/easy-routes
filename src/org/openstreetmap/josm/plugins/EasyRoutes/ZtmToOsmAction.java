@@ -6,7 +6,6 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -17,10 +16,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import javafx.util.Pair;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -30,22 +32,19 @@ import org.openstreetmap.josm.actions.downloadtasks.DownloadOsmTask;
 import org.openstreetmap.josm.actions.downloadtasks.DownloadTask;
 import org.openstreetmap.josm.actions.downloadtasks.DownloadTaskList;
 import org.openstreetmap.josm.actions.downloadtasks.PostDownloadHandler;
-import org.openstreetmap.josm.data.coor.LatLon;
-import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
-import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
 import org.openstreetmap.josm.data.osm.PrimitiveId;
-import org.openstreetmap.josm.data.osm.SimplePrimitiveId;
 import org.openstreetmap.josm.gui.progress.PleaseWaitProgressMonitor;
-import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SelectDownloadPanel;
-import org.openstreetmap.josm.plugin.EasyRoutes.Panels.SelectFileOrUrlPanel;
+import org.openstreetmap.josm.plugins.EasyRoutes.Panels.SelectDownloadPanel;
+import org.openstreetmap.josm.plugins.EasyRoutes.Panels.SelectFileOrUrlPanel;
+import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.FirstRelationsBuilder;
 import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.RelationsBuilder;
-import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.SingleRelationBuilder;
 
 public class ZtmToOsmAction extends DownloadAlongAction {
 
 
-	RelationsBuilder builder = null;
+	private FirstRelationsBuilder builder = null;
+	private RelationsBuilder builder2 = null;
 	JPanel panel;
 	JFrame frame;
 	JLabel emptyLabel;
@@ -87,10 +86,10 @@ public class ZtmToOsmAction extends DownloadAlongAction {
         }
 
     }
+	/*
 	private double calculateArea(Area a, double bufor, double maxPowierzchnia) {
 		List<LatLon> ll1 = new ArrayList<LatLon>();
 		for (SingleRelationBuilder primx : builder.getRelations()) {
-			System.out.println("-----");
 			List<Node> tmp = new ArrayList<Node>();
 			for (Node n : primx.getTrackNodes()) {
 				tmp.add(n);
@@ -126,15 +125,15 @@ public class ZtmToOsmAction extends DownloadAlongAction {
 			a.add(new Area(r));
 		}
 		return max_area;
-	}
+	}*/
 	
-	public List<Rectangle2D> getRectangleToDownload(double bufor, double maxPowierzchnia) {
+	/*public List<Rectangle2D> getRectangleToDownload(double bufor, double maxPowierzchnia) {
 		List<Rectangle2D> toDownload = new ArrayList<>();
 		Area a = new Area();
 		double max_area=calculateArea(a, bufor, maxPowierzchnia);
 		DownloadAlongAction.addToDownload(a, a.getBounds(), toDownload, max_area);
 		return toDownload;
-	}
+	}*/
 	public void downloadDataOsm(List<Rectangle2D> toDownload) {
 			if (toDownload.isEmpty()) {
 				return;
@@ -222,12 +221,14 @@ public class ZtmToOsmAction extends DownloadAlongAction {
 		}
 	}
 	public void runNext() {
-		builder.createNecessaryRelations();
-		builder.onLoadTrackNodes();
-		List<Rectangle2D> toDownload = getRectangleToDownload(1000, 8);
+		List <Pair<String, String> > us = builder.wtch.getUnsupportedStops();
+		//builder.createNecessaryRelations();
+		//builder.onLoadTrackNodes();
+		//List<Rectangle2D> toDownload = getRectangleToDownload(1000, 8);
+		List<Rectangle2D> toDownload = new ArrayList<Rectangle2D>();
 		frame.getContentPane().removeAll();
 		frame.getContentPane().invalidate();
-		frame.getContentPane().add(new SelectDownloadPanel(this, toDownload));
+		frame.getContentPane().add(new SelectDownloadPanel(this, toDownload, us));
 		frame.getContentPane().revalidate();
 	}
 
@@ -239,7 +240,17 @@ public class ZtmToOsmAction extends DownloadAlongAction {
 
 
 	public void task3() {
-			builder.createTracks();
+		List <Pair<String, String> > us = builder.wtch.getUnsupportedStops();
+		if(us.size() != 0) {
+		String uuuk = "<html> DODAJ NAJPIERW PRZYSTANKI:";
+			for(Pair<String, String> x : us) {
+				uuuk += x.getKey() + " " + x.getValue()+"<br>";
+			}
+			uuuk += "</html>";
+			JOptionPane.showMessageDialog(null, uuuk);
+			return;
+		}
+			builder2.createTracks();
 			emptyLabel.setText("3. Zweryfikuj trasę\n");
 			 JButton but = new JButton("Zweryfikowano");
 			 final ZtmToOsmAction xa = ZtmToOsmAction.this;
@@ -261,7 +272,7 @@ public class ZtmToOsmAction extends DownloadAlongAction {
 	}
 
 	public void task4() {
-		builder.doFinally();
+		builder2.doFinally();
 		frame.setVisible(false);
 		frame.removeAll();
 		frame.dispose();
@@ -280,17 +291,9 @@ public class ZtmToOsmAction extends DownloadAlongAction {
 		frame.getContentPane().invalidate();
 		frame.getContentPane().add(panel);
 		frame.getContentPane().revalidate();
-		builder = new RelationsBuilder(fileString);
-		for (SingleRelationBuilder rel : builder.getRelations()) {
-			prims0.addAll(rel.getNecessaryPrimitives());
-		}
-		for(Long id1 : builder.getNecessaryRelations()) {
-			PrimitiveId ggg = new SimplePrimitiveId(id1,
-					OsmPrimitiveType.RELATION);
-			prims0.add(ggg);
-		}
+		builder = new FirstRelationsBuilder(fileString);
 		List <PrimitiveId> lis = new ArrayList<>();
-		lis.addAll(prims0);
+		lis.addAll(builder.getNeccesaryPrimitives());
 		DownloadNecessaryObjectsZtmToOsm dd = new DownloadNecessaryObjectsZtmToOsm(false, lis, false, false, "",
 				null, this);
 		dd.run();

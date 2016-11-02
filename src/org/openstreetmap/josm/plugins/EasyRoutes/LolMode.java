@@ -39,7 +39,7 @@ PrzystankiAction act;
 
     @Override public void mouseClicked(MouseEvent e) {
     	Point x = e.getPoint();
-    	Layer y = Main.main.getActiveLayer();
+    	Layer y = Main.getLayerManager().getActiveLayer();
     	LatLon ll = Main.map.mapView.getLatLon(x.x, x.y);
     	act.receiveClickedLatLon(ll);
     }

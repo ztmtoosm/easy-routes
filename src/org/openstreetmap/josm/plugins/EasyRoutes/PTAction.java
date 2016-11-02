@@ -19,7 +19,7 @@ public class PTAction extends JosmAction {
     }
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		DataSet ds = Main.main.getCurrentDataSet();
+		DataSet ds = Main.getLayerManager().getEditDataSet();
 		Collection<Way> ajWaj = ds.getWays();
 		for(Way x : ajWaj) {
 			if(x.keySet().size()==0 && x.getNodes().size()==2) {
