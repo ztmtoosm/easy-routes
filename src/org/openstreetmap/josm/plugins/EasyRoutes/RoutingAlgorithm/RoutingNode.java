@@ -17,32 +17,33 @@ public class RoutingNode implements Comparable<RoutingNode> {
 		vertices = new LinkedList<RoutingVertex>();
 	}
 
-	static void dodajKrawedz(RoutingNode start, RoutingNode stop,
-			RoutingVertex krawedz) {
-		start.vertices.add(krawedz);
+	static void addEdge(RoutingNode start, RoutingNode stop,
+						RoutingVertex edge) {
+		start.vertices.add(edge);
 	}
 
-	public double getOdleglosc() {
+	public double getDistance() {
 		return distanceToStart;
 	}
 
-	void odwiedzPierwszego(PriorityQueue<RoutingNode> kolejka,
-			Map<RoutingNode, RoutingNode> poprzednie) {
+	void visitFirst(PriorityQueue<RoutingNode> queue,
+			Map<RoutingNode, RoutingNode> visitedBefore) {
 		distanceToStart = 0;
-		odwiedz(kolejka, poprzednie);
+		visit(queue, visitedBefore);
 	}
 
-	void odwiedz(PriorityQueue<RoutingNode> kolejka,
-			Map<RoutingNode, RoutingNode> poprzednie) {
+
+	void visit(PriorityQueue<RoutingNode> queue,
+			Map<RoutingNode, RoutingNode> visitedBefore) {
 		isVisited = true;
 		for (RoutingVertex k : vertices) {
 			RoutingNode nextNode = k.getNextNode(this);
 			if (nextNode.distanceToStart > distanceToStart + k.getWeight()
 					&& !nextNode.isVisited) {
-				kolejka.remove(nextNode);
+				queue.remove(nextNode);
 				nextNode.distanceToStart = distanceToStart + k.getWeight();
-				kolejka.add(nextNode);
-				poprzednie.put(nextNode, this);
+				queue.add(nextNode);
+				visitedBefore.put(nextNode, this);
 			}
 		}
 	}

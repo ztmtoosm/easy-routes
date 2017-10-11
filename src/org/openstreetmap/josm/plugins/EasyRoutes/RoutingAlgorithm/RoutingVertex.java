@@ -9,7 +9,7 @@ public class RoutingVertex {
 		this.start = start;
 		this.stop = stop;
 		this.weight = weight;
-		RoutingNode.dodajKrawedz(start, stop, this);
+		RoutingNode.addEdge(start, stop, this);
 	}
 
 	public double getWeight() {

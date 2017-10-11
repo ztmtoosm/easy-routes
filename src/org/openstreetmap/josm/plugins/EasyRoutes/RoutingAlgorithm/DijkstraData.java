@@ -8,29 +8,29 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 public class DijkstraData {
-	List<RoutingNode> wezly;
+	List<RoutingNode> nodes;
 	public DijkstraData() {
-		wezly = new ArrayList<RoutingNode>();
+		nodes = new ArrayList<RoutingNode>();
 	}
 
 	public void add(RoutingNode w) {
-		wezly.add(w);
+		nodes.add(w);
 	}
 	
 	public Map<RoutingNode, RoutingNode> calculateCore(RoutingNode p, RoutingNode k) {
-		for (RoutingNode w : wezly) {
+		for (RoutingNode w : nodes) {
 			w.distanceToStart = RoutingNode.MAX_DISTANCE;
 			w.isVisited = false;
 		}
 		Map<RoutingNode, RoutingNode> pop = new HashMap<RoutingNode, RoutingNode>();
 		PriorityQueue<RoutingNode> kolejka = new PriorityQueue<RoutingNode>();
-		p.odwiedzPierwszego(kolejka, pop);
+		p.visitFirst(kolejka, pop);
 		int licznik = 0;
 		boolean ok = true;
 		while (kolejka.size() > 0 && ok) {
 			licznik++;
 			RoutingNode x = kolejka.poll();
-			x.odwiedz(kolejka, pop);
+			x.visit(kolejka, pop);
 			if (x == k)
 				ok = false;
 		}
@@ -46,6 +46,7 @@ public class DijkstraData {
 			akt = pop.get(akt);
 		}
 		wynik.add(akt);
+		System.out.println("{{" + wynik.size());
 		if (wynik.size() < 2)
 			throw new NodeConnectException();
 		if (wynik.get(0) != k)
@@ -57,8 +58,8 @@ public class DijkstraData {
 	}
 	public double calculateDistance(RoutingNode p, RoutingNode k) throws NodeConnectException {
 		calculateCore(p,k);
-		if(k.getOdleglosc()==RoutingNode.MAX_DISTANCE)
+		if(k.getDistance()==RoutingNode.MAX_DISTANCE)
 			throw new NodeConnectException();
-		return k.getOdleglosc();
+		return k.getDistance();
 	}
 }

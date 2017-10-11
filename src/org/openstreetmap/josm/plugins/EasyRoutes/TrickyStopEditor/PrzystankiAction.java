@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.EasyRoutes;
+package org.openstreetmap.josm.plugins.EasyRoutes.TrickyStopEditor;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 

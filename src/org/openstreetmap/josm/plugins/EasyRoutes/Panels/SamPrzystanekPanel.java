@@ -11,8 +11,8 @@ import javax.swing.JPanel;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.openstreetmap.josm.plugins.EasyRoutes.PrzystankiAction;
-import org.openstreetmap.josm.plugins.EasyRoutes.PrzystankiAction.TrybClick;
+import org.openstreetmap.josm.plugins.EasyRoutes.TrickyStopEditor.PrzystankiAction;
+import org.openstreetmap.josm.plugins.EasyRoutes.TrickyStopEditor.PrzystankiAction.TrybClick;
 
 public class SamPrzystanekPanel extends JPanel {
 

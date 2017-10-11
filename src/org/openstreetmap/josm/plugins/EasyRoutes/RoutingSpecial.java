@@ -35,17 +35,20 @@ import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.RoutingVertex;
 import org.openstreetmap.josm.tools.Pair;
 
 public class RoutingSpecial implements DataSetListener  {
-	private Collection<Collection<String> > aktPreferences;
+	private Collection<Collection<String> > currentPreferences;
 	private DijkstraData dijkstraData;
 	private Map<Pair<Node, Node>, Way> connections;
 	private Set <Node> connectedNodes;
 	private Map<Node, RoutingNode> osmNodeToRoutingNode;
 	private Map<RoutingNode, Node> routingNodeToOsmNode;
 	private DataSet ds = null;
-	public RoutingSpecial(Collection<Collection<String>> aktPreferences) {
-		this.aktPreferences = aktPreferences;
-		Main.getLayerManager().getEditDataSet().addDataSetListener(this);
+	public RoutingSpecial(Collection<Collection<String>> currentPreferences, DataSet ds2) {
+		this.currentPreferences = currentPreferences;
 		ds = Main.getLayerManager().getEditDataSet();
+		if(ds2 != null) {
+			ds = ds2;
+		}
+		ds.addDataSetListener(this);
 	}
 	public DataSet getDataSet() {
 		return ds;
@@ -53,8 +56,7 @@ public class RoutingSpecial implements DataSetListener  {
 	int licznik=0;
 	private void updateAllData() {
 		licznik++;
-		System.out.println("UPDATE ALL DATA "+licznik+" "+Main.getLayerManager().getEditDataSet()+" "+ds);
-		DataSet dataSet = Main.getLayerManager().getEditDataSet();
+		DataSet dataSet = ds;
 			connectedNodes = new TreeSet <Node>();
 			connections = new HashMap<Pair<Node, Node>, Way>();
 			Collection<Node> nodes = dataSet.getNodes();
@@ -123,9 +125,9 @@ public class RoutingSpecial implements DataSetListener  {
 	}
 	private double getWeight(Way w, boolean isNormalDirection) {
 		double value = -1;
-		if (aktPreferences == null)
+		if (currentPreferences == null)
 			return 1;
-		for (Collection<String> foo : aktPreferences) {
+		for (Collection<String> foo : currentPreferences) {
 			Map<String, String> map = w.getKeys();
 			String[] ar = new String[foo.size()];
 			int i = 0;
@@ -168,6 +170,7 @@ public class RoutingSpecial implements DataSetListener  {
 			updateAllData();
 		List<RoutingNode> wezly = new ArrayList<RoutingNode>();
 		for (int i = 0; i < middleNodes.size() - 1; i++) {
+			System.out.println("CALCULATE..." + middleNodes.get(i).get("ref") + " " + middleNodes.get(i+1).get("ref"));
 			List<RoutingNode> wezlyTmp = dijkstraData.calculate(
 					osmNodeToRoutingNode.get(middleNodes.get(i)),
 					osmNodeToRoutingNode.get(middleNodes.get(i + 1)));
@@ -328,7 +331,6 @@ public class RoutingSpecial implements DataSetListener  {
 				forwardBackward.add("");
 			if(licznik==1)
 				forwardBackward.add("forward");
-			System.out.println("LICZNIK "+licznik);
 		}
 		return wynik;
 	}
@@ -345,7 +347,7 @@ public class RoutingSpecial implements DataSetListener  {
 	public void unregisterListener(WaySplitterDataListener lis) {
 		listeners.remove(lis);
 	}
-	private void powiadom() {
+	private void callListeners() {
 		for(WaySplitterDataListener lis : listeners) {
 			lis.onWaySplitterDataChange();
 		}
@@ -363,12 +365,15 @@ public class RoutingSpecial implements DataSetListener  {
 		            public void run() {
 		            			ws.changed=false;*/
 		            			ws.updateAllData();
-		            			ws.powiadom();/*
+		            			ws.callListeners();/*
 		            }
 		        }, 500);*/
 	}
 	
 
+	public void fireMe() {
+		getDataSet().removeDataSetListener(this);
+	}
 	
 	@Override
 	public void primitivesAdded(PrimitivesAddedEvent event) {

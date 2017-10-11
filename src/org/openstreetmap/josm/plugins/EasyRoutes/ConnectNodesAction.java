@@ -25,7 +25,7 @@ public final class ConnectNodesAction extends JosmAction {
 		try {
 			Collection<Collection<String>> aktPreferences = Main.pref
 					.getArray("easy-routes.weights");
-			RoutingSpecial ws = new RoutingSpecial(aktPreferences);
+			RoutingSpecial ws = new RoutingSpecial(aktPreferences, null);
 			ws.splitWays(lis);
 			Main.getLayerManager().getEditDataSet().clearSelection();
 			List<Way> xd = ws.getWaysAfterSplit(lis);
@@ -47,7 +47,7 @@ public final class ConnectNodesAction extends JosmAction {
 	void foo4(List<Way> lis) {
 			Collection<Collection<String>> aktPreferences = Main.pref
 					.getArray("easy-routes.weights");
-			RoutingSpecial ws = new RoutingSpecial(aktPreferences);
+			RoutingSpecial ws = new RoutingSpecial(aktPreferences, null);
 			Double aa = 0.0;
 			Double ab = 0.0;
 			Double ba = 0.0;
@@ -72,7 +72,6 @@ public final class ConnectNodesAction extends JosmAction {
 			} catch (NodeConnectException e) {
 				bb = 1000000.0;
 			}
-			System.out.println(aa+" "+ab+" "+ba+" "+bb);
 			if(aa<ab && aa<ba && aa<bb) {
 				foo3(tnl(lis.get(0).firstNode(), lis.get(1).firstNode()));
 			} else if (ab<ba && ab<bb) {

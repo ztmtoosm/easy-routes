@@ -33,13 +33,7 @@ public class DiffLayer extends Layer {
 		List <Node> tmpNodes = new ArrayList<>();
 		tmpNodes.add(a);
 		tmpNodes.add(b);
-		for (int i = 0; i < tmpNodes.size() - 1; i++) {
-			LatLon alfa = tmpNodes.get(i).getCoor();
-			LatLon beta = tmpNodes.get(i + 1).getCoor();
-			Point pa = mv.getPoint(alfa);
-			Point pb = mv.getPoint(beta);
-			g.draw(new Line2D.Double(pa, pb));
-		}
+		RoutingLayer.drawLine(mv, g, tmpNodes);
 	}
 	
 	@Override
@@ -58,7 +52,7 @@ public class DiffLayer extends Layer {
 				}
 			}
 		}
-		g.setColor(Color.RED);
+		g.setColor(Color.PINK);
 		Stroke str2 = new BasicStroke(6, BasicStroke.CAP_ROUND,
 		BasicStroke.JOIN_ROUND);
 		g.setStroke(str2);

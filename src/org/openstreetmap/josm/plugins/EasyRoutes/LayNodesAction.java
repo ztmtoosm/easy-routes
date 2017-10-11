@@ -37,7 +37,7 @@ public final class LayNodesAction extends JosmAction {
                     .show();
         }
         RoutingLayer lay;
-		lay = new RoutingLayer(selection2, new ArrayList<OsmPrimitive>(), "xxx", new RoutingSpecial(Main.pref.getArray("easy-routes.weights")));
+		lay = new RoutingLayer(selection2, new ArrayList<OsmPrimitive>(), "xxx", new RoutingSpecial(Main.pref.getArray("easy-routes.weights"), null));
 	       Main.getLayerManager().addLayer(lay);
     }
 

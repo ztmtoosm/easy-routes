@@ -92,6 +92,7 @@ public class SelectFromUrlFrame extends JFrame {
 	JButton butOk;
 	JList lista;
 	SelectFileOrUrlPanel parentPanel;
+	List <String> coreListLines = new ArrayList<String>();
 	void foo(String tab, final String server, final String city) {
 		
 		JSONParser parser = new JSONParser();
@@ -101,10 +102,13 @@ public class SelectFromUrlFrame extends JFrame {
 			
 			JSONArray array = (JSONArray)baseObject.get("lines");
 			System.out.println(tab);
+			coreListLines.clear();
 			wybor = new String[array.size()];
 			for (int i = 0; i < array.size(); i++) {
-				
-				wybor[i] = (String) ((JSONObject)array.get(i)).get("lin");
+				String lineName = (String) ((JSONObject)array.get(i)).get("lin");
+				long toAddPlus = (Long) ((JSONObject)array.get(i)).get("toaddplus");
+				coreListLines.add(lineName);
+				wybor[i] = lineName + " + przystanki do ręcznego dodania: " + toAddPlus;
 			}
 		} catch (ParseException e2) {
 			e2.printStackTrace();
@@ -170,7 +174,7 @@ public class SelectFromUrlFrame extends JFrame {
 			int wyb = wybs[i];
 			if(wyb>=0) {
 				String xx = sciezki.get(i);
-				String wynik=downUrl(server+"apiline2/"+xx);
+				String wynik=downUrl(server+"apiline2/"+coreListLines.get(wybs[i]));
 				arr.add(wynik);
 
 			}

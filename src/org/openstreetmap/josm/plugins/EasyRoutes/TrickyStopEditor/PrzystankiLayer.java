@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.EasyRoutes;
+package org.openstreetmap.josm.plugins.EasyRoutes.TrickyStopEditor;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

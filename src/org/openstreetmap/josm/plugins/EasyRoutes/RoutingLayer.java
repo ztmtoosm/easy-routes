@@ -7,10 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -38,35 +35,17 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 	MapView mv;
 	String desc;
 	List<OsmPrimitive> otherNodes;
-	
-	public List <Node> getAllNodes() {
-		if(middleNodes==null)
-			return null;
-		List <Node> wynik = new ArrayList<>();
-		for(int i=0; i<middleNodes.size(); i++) {
-			List <Node> mid = middleNodes.get(i);
-			if(mid==null)
-				return null;
-			if(mid.size()<2)
-				return null;
-			for(int j=0; j<mid.size(); j++) {
-				Node akt = mid.get(j);
-				if(j>0 || i==0)
-					wynik.add(akt);
-			}
-		}
-		return wynik;
-	}
+
 	public List<List<Node>> getMiddleNodes() {
 		return middleNodes;
 	}
-	public Set <Node> getAllNodesSet() {
-		if(middleNodes==null)
+	public Collection<Node> getAllNodes() {
+		if(middleNodes == null)
 			return null;
 		Set <Node> wynik = new TreeSet<>();
 		for(int i=0; i<middleNodes.size(); i++) {
 			List <Node> mid = middleNodes.get(i);
-			if(mid!=null)
+			if(mid != null)
 				for(int j=0; j<mid.size(); j++) {
 					Node akt = mid.get(j);
 					wynik.add(akt);
@@ -201,17 +180,19 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 	public void mergeFrom(Layer from) {
 		// Merging is not supported
 	}
-	private void drawLine(Graphics2D g, List<Node> tmpNodes) {
+
+	static void drawLine(MapView view, Graphics2D g, List<Node> tmpNodes) {
 		if(tmpNodes==null)
 			return;
 		for (int i = 0; i < tmpNodes.size() - 1; i++) {
 			LatLon alfa = tmpNodes.get(i).getCoor();
 			LatLon beta = tmpNodes.get(i + 1).getCoor();
-			Point pa = mv.getPoint(alfa);
-			Point pb = mv.getPoint(beta);
+			Point pa = view.getPoint(alfa);
+			Point pb = view.getPoint(beta);
 			g.draw(new Line2D.Double(pa, pb));
 		}
 	}
+
 	@Override
 	public void paint(Graphics2D g, MapView mv, Bounds bounds) {
 		Color poczatkowy = new Color(255, 200, 0, 128);
@@ -257,7 +238,7 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 				setName(desc+" NIEPOŁĄCZONE LINIE!");
 				cale = false;
 			}
-			drawLine(g, tmpNodes);
+			drawLine(mv, g, tmpNodes);
 		}
 		if(cale)
 			setName(desc);
@@ -267,7 +248,7 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		g.setColor(c);
 		for(int j=0; j<middleNodes.size(); j++) {
 			List<Node> tmpNodes = middleNodes.get(j);
-			drawLine(g, tmpNodes);
+			drawLine(mv, g, tmpNodes);
 		}
 		if (selectedNode != null) {
 			g.setColor(c);
@@ -317,7 +298,7 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		}
 		if (wynik == null) {
 
-			for (Node n : getAllNodesSet()) {
+			for (Node n : getAllNodes()) {
 				Point pa = mv.getPoint(n.getCoor());
 				double dist = pa.distance(pp);
 				if (dist < distance) {
@@ -337,6 +318,7 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 			return xd;
 	}
 	public List<Way> splitWays() throws NodeConnectException {
+		System.out.println("SPLIT WAYS --->>>>> >>>> >>>>>");
 		List<String> tmp = null;
 		return splitWays(tmp);
 	}
