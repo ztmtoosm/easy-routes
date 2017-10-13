@@ -12,9 +12,10 @@ import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
 import org.openstreetmap.josm.data.osm.Relation;
-import org.openstreetmap.josm.plugins.EasyRoutes.DiffLayer;
-import org.openstreetmap.josm.plugins.EasyRoutes.DiffLayerTech;
-import org.openstreetmap.josm.plugins.EasyRoutes.RoutingLayer;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.DiffLayer;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.DiffLayerTech;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingBis;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingLayer;
 
 public class RelationsBuilder {
 	List<SingleRelationBuilder> relationList = new ArrayList<SingleRelationBuilder>();
@@ -47,16 +48,16 @@ public class RelationsBuilder {
 	}
 
 	public void createTracks() {
-		Map<String, List<RoutingLayer>> layers = new HashMap<>();
+		Map<String, List<RoutingBis>> layers = new HashMap<>();
 		Map<String, List<Relation>> rels = new HashMap<>();
 		for (SingleRelationBuilder foo : relationList) {
 			String ref = foo.onLoadRouting();
 			if (ref != null) {
 				if (!layers.containsKey(ref))
-					layers.put(ref, new ArrayList<RoutingLayer>());
+					layers.put(ref, new ArrayList<>());
 				if (!rels.containsKey(ref))
-					rels.put(ref, new ArrayList<Relation>());
-				layers.get(ref).add(foo.lay);
+					rels.put(ref, new ArrayList<>());
+				layers.get(ref).add(foo.routingBis);
 				if (foo.id > 0)
 					rels.get(ref).add(
 							(Relation) ds.getPrimitiveById(foo.id,
@@ -64,7 +65,7 @@ public class RelationsBuilder {
 			}
 		}
 		List<DiffLayerTech> tech = new ArrayList<>();
-		for (Entry<String, List<RoutingLayer>> e : layers.entrySet()) {
+		for (Entry<String, List<RoutingBis>> e : layers.entrySet()) {
 			List<Relation> rels2 = rels.get(e.getKey());
 			if (rels2 == null) {
 				rels2 = new ArrayList<>();

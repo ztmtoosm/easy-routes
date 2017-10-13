@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.EasyRoutes;
+package org.openstreetmap.josm.plugins.EasyRoutes.Routing;
 
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +9,7 @@ import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
 import org.openstreetmap.josm.data.osm.Relation;
 import org.openstreetmap.josm.data.osm.RelationMember;
 import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingLayer;
 
 public class DiffLayerTech {
 	class Pair<A, B> {
@@ -86,29 +87,33 @@ public class DiffLayerTech {
 	
 	
 	private List<Relation> oldRelations;
-	private List<RoutingLayer> layers;
+	private List<RoutingBis> routingBiss;
 	public Set<Pair<Node, Node> > pairsLayers;
 	public Set<Pair<Node, Node> > pairsRelations;
 	public String lineId;
-	public DiffLayerTech(List<Relation> oldRelations, List<RoutingLayer> layers, String lineId) {
+	public DiffLayerTech(List<Relation> oldRelations, List<RoutingBis> layers, String lineId) {
 		this.lineId = lineId;
 		this.oldRelations=oldRelations;
-		this.layers=layers;
+		this.routingBiss=layers;
 	}
-	
-	private void extractLayer(RoutingLayer layer) {
-		List<List <Node> > genList = layer.getMiddleNodes();
+
+	private void extract(List<Node> tmp, Set<Pair<Node, Node> > toAdd) {
+		if(tmp!=null) {
+			for(int i=0; i<tmp.size()-1; i++) {
+				Node a = tmp.get(i);
+				Node b = tmp.get(i+1);
+				Pair <Node, Node> tmp2 = new Pair<>(a,b);
+				toAdd.add(tmp2);
+			}
+		}
+	}
+
+	private void extractRoutingBis(RoutingBis routingBis) {
+		List<List <Node> > genList = routingBis.getMiddleNodes();
 		if(genList==null)
 			return;
 		for(List<Node> tmp : genList) {
-			if(tmp!=null) {
-				for(int i=0; i<tmp.size()-1; i++) {
-					Node a = tmp.get(i);
-					Node b = tmp.get(i+1);
-					Pair <Node, Node> tmp2 = new Pair<>(a,b);
-					pairsLayers.add(tmp2);
-				}
-			}
+			extract(tmp, pairsLayers);
 		}
 	}
 	
@@ -119,12 +124,7 @@ public class DiffLayerTech {
 				if(x.getType()==OsmPrimitiveType.WAY) {
 					Way w = x.getWay();
 					List <Node> y = w.getNodes();
-					for(int i=0; i<y.size()-1; i++) {
-						Node a = y.get(i);
-						Node b = y.get(i+1);
-						Pair <Node, Node> tmp2 = new Pair<>(a,b);
-						pairsRelations.add(tmp2);
-					}
+					extract(y, pairsRelations);
 				}
 		}
 	}
@@ -132,9 +132,9 @@ public class DiffLayerTech {
 	public void update() {
 		pairsLayers = new HashSet<>();
 		pairsRelations = new HashSet<>();
-		for(RoutingLayer foo : layers) {
+		for(RoutingBis foo : routingBiss) {
 			if(foo!=null)
-				extractLayer(foo);
+				extractRoutingBis(foo);
 		}
 		for(Relation foo : oldRelations) {
 			if(foo!=null)

@@ -15,6 +15,8 @@ import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.Notification;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingLayer;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingSpecial;
 
 public final class LayNodesAction extends JosmAction {
     public LayNodesAction() {

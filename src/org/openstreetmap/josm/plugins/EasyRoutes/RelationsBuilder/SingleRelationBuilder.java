@@ -14,8 +14,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.osm.*;
-import org.openstreetmap.josm.plugins.EasyRoutes.RoutingLayer;
-import org.openstreetmap.josm.plugins.EasyRoutes.RoutingSpecial;
+import org.openstreetmap.josm.plugins.EasyRoutes.CityEnviroment.RoutingPreferences;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingBis;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingSpecial;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 import org.openstreetmap.josm.plugins.EasyRoutes.StopWatch.SingleStop;
 
@@ -25,7 +26,7 @@ public class SingleRelationBuilder {
 	List<Node> trackNodes = null;
 	List<Long> parentRel = new ArrayList<Long>();
 	long id;
-	RoutingLayer lay;
+	RoutingBis routingBis;
 	String trackType = "bus";
 	Map<String, String> tags = new TreeMap<String, String>();
 	List<RelationMemberBuilder> relationMembers = new ArrayList<RelationMemberBuilder>();
@@ -57,13 +58,13 @@ public class SingleRelationBuilder {
 	}
 
 	public void putRelationWays(Relation x) {
-		if (lay == null)
+		if (routingBis == null)
 			return;
 		List<Way> toAdd;
 		List<String> forBack = new ArrayList<>();
 		try {
-			toAdd = lay.splitWays(forBack);
-			lay.ws.fireMe();
+			toAdd = routingBis.splitWays(forBack);
+			routingBis.ws.fireMe();
 			int i = 0;
 			for (Way y : toAdd) {
 				String foo = "";
@@ -222,24 +223,21 @@ public class SingleRelationBuilder {
 							.getLayerManager().getEditDataSet()) {
 				splitters
 						.put(trackType,
-								new RoutingSpecial(Main.pref
+								new RoutingSpecial(new RoutingPreferences(Main.pref
 										.getArray("easy-routes.weights."
-												+ trackType), ds));
+												+ trackType)), ds));
 			}
 
-			lay = new RoutingLayer(getTrackNodes(), getNecessaryPrimitives2(),
-					name, splitters.get(trackType));
-			Main.getLayerManager().addLayer(lay);
+			routingBis = new RoutingBis(getTrackNodes(), getNecessaryPrimitives2(),
+					name, splitters.get(trackType), true);
 			return tags.get("ref");
 		}
 		return null;
 	}
 
 	public void eraseLayer() {
-		if (lay != null) {
-			if (lay.ws != null)
-				lay.ws.unregisterListener(lay);
-			Main.getLayerManager().removeLayer(lay);
+		if (routingBis != null) {
+			routingBis.eraseLayer();
 		}
 	}
 

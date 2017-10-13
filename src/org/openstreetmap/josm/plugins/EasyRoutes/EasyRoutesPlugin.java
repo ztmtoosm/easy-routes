@@ -27,11 +27,11 @@ public class EasyRoutesPlugin extends Plugin implements LayerStateChangeListener
 		PreferenceGenerator.setPrefOnInit(PreferenceGenerator.typicalPref(), "easy-routes.weights.bus");
 		PreferenceGenerator.setPrefOnInit(PreferenceGenerator.railwayPref(), "easy-routes.weights.tram");
 		JMenu jMenu = Main.main.menu.addMenu("easy-routes","easy-routes", KeyEvent.VK_COMMA, Main.main.menu.getDefaultMenuPos(), "help");
-		jMenu.add(new JMenuItem(new ConnectNodesAction()));
+		//jMenu.add(new JMenuItem(new ConnectNodesAction()));
 		preferences = (EasyRoutesPreference) new EasyRoutesPreference.Factory()
 				.createPreferenceSetting();
 		jMenu.add(new JMenuItem(new LayNodesAction()));
-		jMenu.add(new JMenuItem(new Con2NoAc()));
+		//jMenu.add(new JMenuItem(new Con2NoAc()));
 		jMenu.add(new JMenuItem(new ZtmToOsmAction()));
 		jMenu.add(new JMenuItem(new PTAction()));
 		jMenu.add(new JMenuItem(new PrzystankiAction()));

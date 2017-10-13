@@ -2,7 +2,6 @@ package org.openstreetmap.josm.plugins.EasyRoutes;
 
 //License: GPL. For details, see LICENSE file.
 
-
 import static org.openstreetmap.josm.tools.I18n.tr;
 
 import java.awt.event.ActionEvent;
@@ -14,9 +13,11 @@ import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.gui.Notification;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingLayer;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 
-public final class Con2NoAc extends JosmAction {
+//public final class Con2NoAc extends JosmAction {
+	/*
 	void foo3(RoutingLayer l) {
 		try {
 			Main.getLayerManager().getEditDataSet().clearSelection();
@@ -26,7 +27,7 @@ public final class Con2NoAc extends JosmAction {
 			}
 		} catch (NodeConnectException e) {
 			e.printStackTrace();
-			new Notification(tr("Nodes are not connect together")).setIcon(
+			new Notification(tr("Nodes are not connected together")).setIcon(
 					JOptionPane.WARNING_MESSAGE).show();
 		}
 	}
@@ -41,7 +42,7 @@ public final class Con2NoAc extends JosmAction {
 			return;
 		if(Main.getLayerManager().getActiveLayer().getClass()==RoutingLayer.class) {
 			RoutingLayer l = (RoutingLayer)Main.getLayerManager().getActiveLayer();
-			if(l.crucialNodes!=null)
+			if(l.crucialNodes != null)
 				foo3(l);
 		}
 	}
@@ -49,10 +50,11 @@ public final class Con2NoAc extends JosmAction {
 	@Override
 	protected void updateEnabledState() {
 		setEnabled(false);
-		if(Main.getLayerManager().getActiveLayer()==null)
+		if(Main.getLayerManager().getActiveLayer() == null)
 			return;
-		if(Main.getLayerManager().getActiveLayer().getClass()==RoutingLayer.class) {
+		if(Main.getLayerManager().getActiveLayer().getClass() == RoutingLayer.class) {
 			setEnabled(true);
 		}
 	}
-}
+	*/
+//}

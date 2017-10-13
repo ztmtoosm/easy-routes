@@ -1,11 +1,9 @@
-package org.openstreetmap.josm.plugins.EasyRoutes;
+package org.openstreetmap.josm.plugins.EasyRoutes.Routing;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Stroke;
-import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,12 +11,10 @@ import javax.swing.Action;
 import javax.swing.Icon;
 
 import org.openstreetmap.josm.data.Bounds;
-import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.visitor.BoundingXYVisitor;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.layer.Layer;
-import org.openstreetmap.josm.plugins.EasyRoutes.DiffLayerTech.Pair;
 import org.openstreetmap.josm.tools.ImageProvider;
 
 public class DiffLayer extends Layer {
@@ -46,7 +42,7 @@ public class DiffLayer extends Layer {
 				BasicStroke.JOIN_ROUND);
 		g.setStroke(str);
 		for(DiffLayerTech tl : techLayers) {
-			for(Pair<Node, Node> xyz : tl.pairsLayers) {
+			for(DiffLayerTech.Pair<Node, Node> xyz : tl.pairsLayers) {
 				if(!tl.pairsRelations.contains(xyz)) {
 					drawLine(g, xyz.getFirst(), xyz.getSecond());
 				}
@@ -57,7 +53,7 @@ public class DiffLayer extends Layer {
 		BasicStroke.JOIN_ROUND);
 		g.setStroke(str2);
 		for(DiffLayerTech tl : techLayers) {
-			for(Pair<Node, Node> xyz : tl.pairsRelations) {
+			for(DiffLayerTech.Pair<Node, Node> xyz : tl.pairsRelations) {
 				if(!tl.pairsLayers.contains(xyz)) {
 					drawLine(g, xyz.getFirst(), xyz.getSecond());
 				}

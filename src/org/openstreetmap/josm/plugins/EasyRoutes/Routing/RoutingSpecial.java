@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.EasyRoutes;
+package org.openstreetmap.josm.plugins.EasyRoutes.Routing;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +28,7 @@ import org.openstreetmap.josm.data.osm.event.PrimitivesRemovedEvent;
 import org.openstreetmap.josm.data.osm.event.RelationMembersChangedEvent;
 import org.openstreetmap.josm.data.osm.event.TagsChangedEvent;
 import org.openstreetmap.josm.data.osm.event.WayNodesChangedEvent;
+import org.openstreetmap.josm.plugins.EasyRoutes.CityEnviroment.RoutingPreferences;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.DijkstraData;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.RoutingNode;
@@ -35,14 +36,14 @@ import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.RoutingVertex;
 import org.openstreetmap.josm.tools.Pair;
 
 public class RoutingSpecial implements DataSetListener  {
-	private Collection<Collection<String> > currentPreferences;
+	private RoutingPreferences currentPreferences;
 	private DijkstraData dijkstraData;
 	private Map<Pair<Node, Node>, Way> connections;
 	private Set <Node> connectedNodes;
 	private Map<Node, RoutingNode> osmNodeToRoutingNode;
 	private Map<RoutingNode, Node> routingNodeToOsmNode;
 	private DataSet ds = null;
-	public RoutingSpecial(Collection<Collection<String>> currentPreferences, DataSet ds2) {
+	public RoutingSpecial(RoutingPreferences currentPreferences, DataSet ds2) {
 		this.currentPreferences = currentPreferences;
 		ds = Main.getLayerManager().getEditDataSet();
 		if(ds2 != null) {
@@ -53,9 +54,45 @@ public class RoutingSpecial implements DataSetListener  {
 	public DataSet getDataSet() {
 		return ds;
 	}
-	int licznik=0;
+
+	private void connectNodes(Way w) {
+		List<Node> ll1 = w.getNodes();
+		double weight = currentPreferences.getWeight(w, true);
+		double reversedWeight = currentPreferences.getWeight(w, false);
+		if (weight > 0 || reversedWeight > 0) {
+			for (int i = 0; i < ll1.size() - 1; i++) {
+				Node a1 = ll1.get(i);
+				Node a2 = ll1.get(i + 1);
+				if(a1!=null && a2!=null)
+				{
+					LatLon coor1 = a1.getCoor();
+					LatLon coor2 = a2.getCoor();
+					if(coor1!=null && coor2!=null)
+					{
+						double length = coor1.greatCircleDistance(coor2) * weight;
+						double reversedLength = coor1.greatCircleDistance(coor2)
+								* reversedWeight;
+						if (weight > 0) {
+							connectedNodes.add(a1);
+							connectedNodes.add(a2);
+							RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a1),
+									osmNodeToRoutingNode.get(a2), length);
+						}
+						if (reversedWeight > 0) {
+							connectedNodes.add(a1);
+							connectedNodes.add(a2);
+							RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a2),
+									osmNodeToRoutingNode.get(a1), reversedLength);
+						}
+						Pair<Node, Node> p1 = Pair.create(a1, a2);
+						connections.put(p1, w);
+					}
+				}
+			}
+		}
+	}
+
 	private void updateAllData() {
-		licznik++;
 		DataSet dataSet = ds;
 			connectedNodes = new TreeSet <Node>();
 			connections = new HashMap<Pair<Node, Node>, Way>();
@@ -65,47 +102,13 @@ public class RoutingSpecial implements DataSetListener  {
 			routingNodeToOsmNode = new HashMap<RoutingNode, Node>();
 			dijkstraData = new DijkstraData();
 			for (Node n : nodes) {
-				RoutingNode nowy = new RoutingNode();
+				RoutingNode nowy = dijkstraData.createNewNode();
 				osmNodeToRoutingNode.put(n, nowy);
 				routingNodeToOsmNode.put(nowy, n);
-				dijkstraData.add(nowy);
 			}
 			for (Way w : ways) {
 				if (w != null) {
-					List<Node> ll1 = w.getNodes();
-					double waga = getWeight(w, true);
-					double waga_rev = getWeight(w, false);
-					if (waga > 0 || waga_rev > 0) {
-						for (int i = 0; i < ll1.size() - 1; i++) {
-							Node a1 = ll1.get(i);
-							Node a2 = ll1.get(i + 1);
-							if(a1!=null && a2!=null)
-							{
-								LatLon coor1 = a1.getCoor();
-								LatLon coor2 = a2.getCoor();
-								if(coor1!=null && coor2!=null)
-								{
-									double len = coor1.greatCircleDistance(coor2) * waga;
-									double len_rev = coor1.greatCircleDistance(coor2)
-											* waga_rev;
-									if (waga > 0) {
-										connectedNodes.add(a1);
-										connectedNodes.add(a2);
-										RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a1),
-												osmNodeToRoutingNode.get(a2), len);
-									}
-									if (waga_rev > 0) {
-										connectedNodes.add(a1);
-										connectedNodes.add(a2);
-										RoutingVertex nowa = new RoutingVertex(osmNodeToRoutingNode.get(a2),
-												osmNodeToRoutingNode.get(a1), len_rev);
-									}
-									Pair<Node, Node> p1 = Pair.create(a1, a2);
-									connections.put(p1, w);
-								}
-							}
-						}
-					}
+					connectNodes(w);
 				}
 			}
 	}
@@ -123,46 +126,6 @@ public class RoutingSpecial implements DataSetListener  {
 		}
 		return wyn;
 	}
-	private double getWeight(Way w, boolean isNormalDirection) {
-		double value = -1;
-		if (currentPreferences == null)
-			return 1;
-		for (Collection<String> foo : currentPreferences) {
-			Map<String, String> map = w.getKeys();
-			String[] ar = new String[foo.size()];
-			int i = 0;
-			for (String xxx : foo) {
-				if (xxx == null)
-					ar[i] = "";
-				else
-					ar[i] = xxx;
-				i++;
-			}
-			String key = ar[0];
-			String kv = ar[1];
-			double wei = 0;
-			if (ar[3].equals(""))
-				wei = 0;
-			else
-				wei = Double.valueOf(ar[3]);
-			if (isNormalDirection) {
-				if (ar[2].equals(""))
-					wei = 0;
-				else
-					wei = Double.valueOf(ar[2]);
-			}
-			if (!key.equals("")) {
-				if (map.containsKey(key)) {
-					if (kv.equals("") || map.get(key).equals(kv)) {
-						if (wei != 0) {
-							value = wei;
-						}
-					}
-				}
-			}
-		}
-		return value;
-	}
 
 	public List<Node> completeNetwork(List<Node> middleNodes, boolean newDData)
 			throws NodeConnectException {
@@ -170,7 +133,6 @@ public class RoutingSpecial implements DataSetListener  {
 			updateAllData();
 		List<RoutingNode> wezly = new ArrayList<RoutingNode>();
 		for (int i = 0; i < middleNodes.size() - 1; i++) {
-			System.out.println("CALCULATE..." + middleNodes.get(i).get("ref") + " " + middleNodes.get(i+1).get("ref"));
 			List<RoutingNode> wezlyTmp = dijkstraData.calculate(
 					osmNodeToRoutingNode.get(middleNodes.get(i)),
 					osmNodeToRoutingNode.get(middleNodes.get(i + 1)));
@@ -256,7 +218,6 @@ public class RoutingSpecial implements DataSetListener  {
 						.toArray()));
 				List<List<Node>> chunks = SplitWayAction.buildSplitChunks(akt,
 						ll);
-				System.out.println("CHUNKS\n"+chunks+"\n LL \n"+ll);
 				if (e1.getValue().size() > 0 && chunks!=null) {
 					SplitWayResult sp = SplitWayAction.splitWay(
 							Main.getLayerManager().getEditLayer(), akt, chunks, ll);
@@ -379,14 +340,12 @@ public class RoutingSpecial implements DataSetListener  {
 	public void primitivesAdded(PrimitivesAddedEvent event) {
 		if(listeners.size()==0)
 			return;
-		System.out.println("PRIMITIVES ADD");
 		changeDelay();
 	}
 	@Override
 	public void primitivesRemoved(PrimitivesRemovedEvent event) {
 		if(listeners.size()==0)
 			return;
-		System.out.println("PRIMITIVES REMOVED");
 		changeDelay();
 	}
 	@Override
@@ -396,13 +355,11 @@ public class RoutingSpecial implements DataSetListener  {
 		List<? extends OsmPrimitive> foo = event.getPrimitives();
 		boolean ok =false;
 		for(OsmPrimitive x : foo) {
-			
 			if(x.getDisplayType()!=OsmPrimitiveType.RELATION && x.getDisplayType()!=OsmPrimitiveType.MULTIPOLYGON)
 				ok = true;
 		}
 		if(!ok)
 			return;
-		System.out.println("TAGS CHANGED");
 		changeDelay();
 	}
 	@Override
@@ -412,7 +369,6 @@ public class RoutingSpecial implements DataSetListener  {
 	public void wayNodesChanged(WayNodesChangedEvent event) {
 		if(listeners.size()==0)
 			return;
-		System.out.println("WAY NODES");
 		changeDelay();
 	}
 	@Override
@@ -431,14 +387,12 @@ public class RoutingSpecial implements DataSetListener  {
 		}
 		if(!ok)
 			return;
-		System.out.println("OTHER");
 		changeDelay();
 	}
 	@Override
 	public void dataChanged(DataChangedEvent event) {
 		if(listeners.size()==0)
 			return;
-		System.out.println("DCC");
 		changeDelay();
 	}
 }

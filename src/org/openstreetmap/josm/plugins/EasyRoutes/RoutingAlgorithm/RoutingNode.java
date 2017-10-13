@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 public class RoutingNode implements Comparable<RoutingNode> {
-	public static final double MAX_DISTANCE = 1000000.0;
+	static final double MAX_DISTANCE = 1000000.0;
 	List<RoutingVertex> vertices;
 	boolean isVisited;
 	double distanceToStart;
 
-	public RoutingNode() {
+	RoutingNode() {
 		distanceToStart = MAX_DISTANCE;
 		isVisited = false;
 		vertices = new LinkedList<RoutingVertex>();
@@ -22,7 +22,7 @@ public class RoutingNode implements Comparable<RoutingNode> {
 		start.vertices.add(edge);
 	}
 
-	public double getDistance() {
+	double getDistance() {
 		return distanceToStart;
 	}
 

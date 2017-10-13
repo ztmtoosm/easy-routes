@@ -17,9 +17,10 @@ import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.data.osm.Way;
 import org.openstreetmap.josm.gui.Notification;
+import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingSpecial;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 import org.openstreetmap.josm.tools.Shortcut;
-
+/*
 public final class ConnectNodesAction extends JosmAction {
 	void foo3(List<Node> lis) {
 		try {
@@ -128,4 +129,4 @@ public final class ConnectNodesAction extends JosmAction {
 			Collection<? extends OsmPrimitive> selection) {
 		setEnabled(selection != null && !selection.isEmpty());
 	}
-}
+}*/
