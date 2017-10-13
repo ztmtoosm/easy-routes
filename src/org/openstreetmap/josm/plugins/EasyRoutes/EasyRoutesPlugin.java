@@ -30,7 +30,7 @@ public class EasyRoutesPlugin extends Plugin implements LayerStateChangeListener
 		//jMenu.add(new JMenuItem(new ConnectNodesAction()));
 		preferences = (EasyRoutesPreference) new EasyRoutesPreference.Factory()
 				.createPreferenceSetting();
-		jMenu.add(new JMenuItem(new LayNodesAction()));
+		//jMenu.add(new JMenuItem(new LayNodesAction()));
 		//jMenu.add(new JMenuItem(new Con2NoAc()));
 		jMenu.add(new JMenuItem(new ZtmToOsmAction()));
 		jMenu.add(new JMenuItem(new PTAction()));

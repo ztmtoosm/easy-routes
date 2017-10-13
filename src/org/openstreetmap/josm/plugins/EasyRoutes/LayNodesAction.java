@@ -1,6 +1,6 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.EasyRoutes;
-
+/*
 import static org.openstreetmap.josm.tools.I18n.tr;
 
 import java.awt.event.ActionEvent;
@@ -15,6 +15,7 @@ import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.gui.Notification;
+import org.openstreetmap.josm.plugins.EasyRoutes.CityEnviroment.RoutingPreferences;
 import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingLayer;
 import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingSpecial;
 
@@ -39,7 +40,7 @@ public final class LayNodesAction extends JosmAction {
                     .show();
         }
         RoutingLayer lay;
-		lay = new RoutingLayer(selection2, new ArrayList<OsmPrimitive>(), "xxx", new RoutingSpecial(Main.pref.getArray("easy-routes.weights"), null));
+		lay = new RoutingLayer(selection2, new ArrayList<OsmPrimitive>(), "xxx", new RoutingSpecial(new RoutingPreferences(Main.pref.getArray("easy-routes.weights"), null));
 	       Main.getLayerManager().addLayer(lay);
     }
 
@@ -57,3 +58,4 @@ public final class LayNodesAction extends JosmAction {
         setEnabled(selection != null && !selection.isEmpty());
     }
 }
+*/

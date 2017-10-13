@@ -2,6 +2,7 @@
 .settings
 *.log
 *.iml
+*.exec
 build
 test/report
 *.class
