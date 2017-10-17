@@ -1,4 +1,4 @@
-package org.openstreetmap.josm.plugins.EasyRoutes.StopWatch;
+package org.openstreetmap.josm.plugins.EasyRoutes.StopWatcher;
 
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.DataSet;

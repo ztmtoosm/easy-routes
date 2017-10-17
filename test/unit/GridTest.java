@@ -269,7 +269,7 @@ public class GridTest {
         Main.main.setEditDataSet(ds);
         createGrid(ds);
         try {
-            SaveActionBase.doSave(layer, new File("/home/dell/foo.osm"), false);
+            SaveActionBase.doSave(layer, new File("test/test0.osm"), false);
         }
         catch (NullPointerException e) {
 

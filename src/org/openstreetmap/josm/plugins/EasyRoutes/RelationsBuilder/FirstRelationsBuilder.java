@@ -13,8 +13,8 @@ import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.OsmPrimitiveType;
 import org.openstreetmap.josm.data.osm.PrimitiveId;
 import org.openstreetmap.josm.data.osm.SimplePrimitiveId;
-import org.openstreetmap.josm.plugins.EasyRoutes.StopWatch.SingleStop;
-import org.openstreetmap.josm.plugins.EasyRoutes.StopWatch.StopWatch;
+import org.openstreetmap.josm.plugins.EasyRoutes.StopWatcher.SingleStop;
+import org.openstreetmap.josm.plugins.EasyRoutes.StopWatcher.StopWatcher;
 
 public class FirstRelationsBuilder {
 	DataSet ds;
@@ -22,7 +22,7 @@ public class FirstRelationsBuilder {
 	String[] jsonTextInternal;
 	RelationsBuilder nextBuilder;
 	Set<PrimitiveId> prims0 = new HashSet<>();
-	StopWatch wtch;
+	StopWatcher wtch;
 	List<Long> prims1 = new LinkedList<Long>();
 
 	void addToPrims0(String key, JSONObject obj) {
@@ -193,7 +193,7 @@ public class FirstRelationsBuilder {
 				e2.printStackTrace();
 			}
 		}
-		wtch = new StopWatch(ds, toGenerateWtch);
+		wtch = new StopWatcher(ds, toGenerateWtch);
 	}
 
 	public Set<PrimitiveId> getNeccesaryPrimitives() {

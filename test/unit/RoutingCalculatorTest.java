@@ -4,6 +4,7 @@ import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.io.OsmReader;
 import org.openstreetmap.josm.plugins.EasyRoutes.CityEnviroment.RoutingPreferences;
 import org.openstreetmap.josm.plugins.EasyRoutes.NewRouting.RoutingCalculator;
 import org.openstreetmap.josm.plugins.EasyRoutes.PreferenceGenerator;
@@ -19,6 +20,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.BeforeClass;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +65,26 @@ public class RoutingCalculatorTest {
         return ret;
     }
 
+    private static List<Node> filter(Map<Integer, Node> original, int[] arry) {
+        List <Node> ret = new ArrayList<>();
+        for(int i=0; i<arry.length; i++) {
+            ret.add(original.get(arry[i]));
+        }
+        return ret;
+    }
+
     private static void checkRouting(List<Node> original, int[] arry, int start, int stop, RoutingPreferences pref) {
+        try {
+            RoutingCalculator calc = new RoutingCalculator(original.get(start), original.get(stop), pref);
+            List <Node> rtt = calc.getPath();
+            containsWithOrder(rtt, filter(original, arry));
+        }
+        catch(NodeConnectException e) {
+            fail("NodeConnectException");
+        }
+    }
+
+    private static void checkRouting(Map<Integer, Node> original, int[] arry, int start, int stop, RoutingPreferences pref) {
         try {
             RoutingCalculator calc = new RoutingCalculator(original.get(start), original.get(stop), pref);
             List <Node> rtt = calc.getPath();
@@ -102,14 +126,31 @@ public class RoutingCalculatorTest {
         checkRouting(tmpList, new int[]{0, 7, 12, 19}, 0, 19, pref);
         checkRouting(tmpList, new int[]{5, 6}, 5, 6, pref);
         checkRouting(tmpList, new int[]{19, 2, 4}, 18, 4, pref);
+    }
 
-        /*
+    @Test
+    public void test2() {
         try {
-            checkRouting(tmpList, new int[]{0, 4, 9}, 0, 9, pref);
-            checkRouting(tmpList, new int[]{0, 7, 12, 19}, 0, 19, pref);
-            checkRouting(tmpList, new int[]{5, 6}, 5, 6, pref);
-            checkRouting(tmpList, new int[]{19, 2, 4}, 18, 4, pref);
+            DataSet ds2 = OsmReader.parseDataSet(new FileInputStream("test/test1.osm"), null);
+            RoutingPreferences pref = new RoutingPreferences(Main.pref.getArray("easy-routes.weights.bus"));
+            Map<Integer, Node> tmpList = TestTools.getTestData(Node.class, ds2);
+            System.out.println(tmpList.size() +" ###");
+            checkRouting(tmpList, new int[]{1, 2, 3}, 1, 3, pref);
+            checkRouting(tmpList, new int[]{3, 2, 1}, 3, 1, pref);
+            checkRouting(tmpList, new int[]{1, 7, 6}, 1, 6, pref);
+            checkRouting(tmpList, new int[]{8, 10, 9}, 8, 9, pref);
+            boolean ok = false;
+            try {
+                RoutingCalculator calc = new RoutingCalculator(tmpList.get(4), tmpList.get(3), pref);
+            }
+            catch(NodeConnectException e) {
+                ok = true;
+            }
+            assert(ok);
+            //checkRouting(tmpList, new int[]{}, 4, 3, pref);
         }
-        catch */
+        catch(Exception e) {
+            fail();
+        }
     }
 }

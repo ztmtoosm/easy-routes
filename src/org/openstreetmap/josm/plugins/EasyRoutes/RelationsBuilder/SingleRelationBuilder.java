@@ -10,18 +10,17 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import javafx.util.Pair;
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.plugins.EasyRoutes.CityEnviroment.RoutingPreferences;
+import org.openstreetmap.josm.plugins.EasyRoutes.NewRouting.SplitException;
 import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingBis;
-import org.openstreetmap.josm.plugins.EasyRoutes.Routing.RoutingSpecial;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
-import org.openstreetmap.josm.plugins.EasyRoutes.StopWatch.SingleStop;
+import org.openstreetmap.josm.plugins.EasyRoutes.StopWatcher.SingleStop;
 
 public class SingleRelationBuilder {
-	static Map<String, RoutingSpecial> splitters = new HashMap<>();
+	static Map<String, RoutingBis> splitters = new HashMap<>();
 	List<Long> track = new ArrayList<Long>();
 	List<Node> trackNodes = null;
 	List<Long> parentRel = new ArrayList<Long>();
@@ -60,22 +59,18 @@ public class SingleRelationBuilder {
 	public void putRelationWays(Relation x) {
 		if (routingBis == null)
 			return;
-		List<Way> toAdd;
-		List<String> forBack = new ArrayList<>();
 		try {
-			toAdd = routingBis.splitWays(forBack);
-			routingBis.ws.fireMe();
-			int i = 0;
-			for (Way y : toAdd) {
-				String foo = "";
-				if (forBack != null && forBack.size() > i
-						&& forBack.get(i) != null)
-					foo = forBack.get(i);
-				RelationMember member = new RelationMember(foo, y);
+			routingBis.splitWays();
+			List<Pair<Way, String>> toAdd = routingBis.getWaysAfterSplit();
+			for (Pair<Way, String> y : toAdd) {
+				RelationMember member = new RelationMember(y.getValue(), y.getKey());
 				x.addMember(member);
-				i++;
 			}
 		} catch (NodeConnectException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (SplitException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -130,19 +125,6 @@ public class SingleRelationBuilder {
 
 	void tagsFromJson(Map<String, String> tags) {
 		this.tags.putAll(tags);
-	}
-
-	void relMembFromJson(JSONArray array, int przesuniecieUjemne) {
-		for (int j = 0; j < array.size(); j++) {
-			JSONObject xd = (JSONObject) array.get(j);
-			String id = (String) xd.get("id");
-			String category = (String) xd.get("category");
-			String role = (String) xd.get("role");
-			long id2 = Long.valueOf(id);
-			if (id2 < 0)
-				id2 -= przesuniecieUjemne;
-			relationMembers.add(new RelationMemberBuilder(id2, role, category));
-		}
 	}
 
 	void relMembFromJson(List<SingleStop> array) {
@@ -218,18 +200,21 @@ public class SingleRelationBuilder {
 			String name = "";
 			if (tags.containsKey("name"))
 				name = tags.get("name") + " [" + id + "]";
-			if (splitters.get(trackType) == null
+			/*if (splitters.get(trackType) == null
 					|| splitters.get(trackType).getDataSet() != Main
 							.getLayerManager().getEditDataSet()) {
 				splitters
 						.put(trackType,
-								new RoutingSpecial(new RoutingPreferences(Main.pref
+								new RoutingBis(Main.getLayerManager().getEditDataSet(), new RoutingPreferences(Main.pref
 										.getArray("easy-routes.weights."
 												+ trackType)), ds));
-			}
+			}*/
 
-			routingBis = new RoutingBis(getTrackNodes(), getNecessaryPrimitives2(),
-					name, splitters.get(trackType), true);
+			RoutingPreferences preferences = new RoutingPreferences(Main.pref
+					.getArray("easy-routes.weights."
+							+ trackType));
+
+			routingBis = new RoutingBis(ds, preferences, trackNodes, name, true);
 			return tags.get("ref");
 		}
 		return null;

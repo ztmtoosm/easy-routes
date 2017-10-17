@@ -26,24 +26,23 @@ import org.openstreetmap.josm.gui.layer.Layer;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 import org.openstreetmap.josm.tools.ImageProvider;
 
-public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listener, WaySplitterDataListener {
+public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listener {
 
 	Node selectedNode;
 	MapView mv;
 	String desc;
-	List<OsmPrimitive> otherNodes;
+	List<OsmPrimitive> otherNodes = new ArrayList<>();
 
 	RoutingBis routingBis;
 	
 
 	
-	public RoutingLayer(List<OsmPrimitive> otherNodes, String description, RoutingBis routingBis) {
+	public RoutingLayer(String description, RoutingBis routingBis) {
 		super(description);
-		this.otherNodes = otherNodes;
+		//TODO
 		setVisible(false);
 		desc = description;
 		this.routingBis = routingBis;
-		odswiez();
 	}
 
 	public void dragAction(int x, int y) throws NodeConnectException {
@@ -53,11 +52,11 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 			return;
 
 		LatLon gg = mv.getLatLon(x, y);
-		Node nowy = routingBis.ws.getClosestPoint(gg);
-		if (nowy == null)
+		Node nodeAfterDrag = routingBis.getClosestPoint(gg);
+		if (nodeAfterDrag == null)
 			return;
 
-		routingBis.drag(nowy, selectedNode);
+		routingBis.drag(nodeAfterDrag, selectedNode);
 
 		Main.map.repaint();
 	}
@@ -229,17 +228,11 @@ public class RoutingLayer extends Layer implements DataSetListenerAdapter.Listen
 		}
 	}
 
-	public void odswiez() {
-		boolean cale = routingBis.refresh();
+	public void refresh(boolean cale) {
 		if(cale)
 			setName(desc);
 		else
 			setName(desc+" NIEPOŁĄCZONE LINIE!");
 		Main.map.repaint();
-	}
-
-	@Override
-	public void onWaySplitterDataChange() {
-		odswiez();
 	}
 }

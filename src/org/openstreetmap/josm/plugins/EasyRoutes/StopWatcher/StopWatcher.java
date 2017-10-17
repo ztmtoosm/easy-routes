@@ -1,27 +1,23 @@
-package org.openstreetmap.josm.plugins.EasyRoutes.StopWatch;
+package org.openstreetmap.josm.plugins.EasyRoutes.StopWatcher;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javafx.util.Pair;
 
-import org.openstreetmap.josm.Main;
-import org.openstreetmap.josm.data.SystemOfMeasurement;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.data.osm.event.*;
 
-public class StopWatch implements DataSetListener {
+public class StopWatcher implements DataSetListener {
 	Map<String, SingleStop> singleStops = new HashMap<String, SingleStop>();
 	private DataSet ds;
-	public StopWatch(DataSet ds, Collection <Pair<String, String> > refsAndNames)
+	public StopWatcher(DataSet ds, Collection <Pair<String, String> > refsAndNames)
 	{
 		this.ds = ds;
 		for(Pair<String, String> x : refsAndNames) {

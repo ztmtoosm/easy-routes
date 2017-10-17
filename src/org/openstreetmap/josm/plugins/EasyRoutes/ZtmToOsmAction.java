@@ -1,7 +1,6 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.EasyRoutes;
 
-import static org.openstreetmap.josm.tools.I18n.addTexts;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
 import java.awt.Dimension;
@@ -9,8 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,15 +35,13 @@ import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.data.osm.PrimitiveId;
-import org.openstreetmap.josm.gui.preferences.server.OverpassServerPreference;
 import org.openstreetmap.josm.gui.progress.swing.PleaseWaitProgressMonitor;
 import org.openstreetmap.josm.io.OverpassDownloadReader;
 import org.openstreetmap.josm.plugins.EasyRoutes.Panels.SelectDownloadPanel;
 import org.openstreetmap.josm.plugins.EasyRoutes.Panels.SelectFileOrUrlPanel;
 import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.FirstRelationsBuilder;
 import org.openstreetmap.josm.plugins.EasyRoutes.RelationsBuilder.RelationsBuilder;
-import org.openstreetmap.josm.plugins.EasyRoutes.StopWatch.SingleStop;
-import org.openstreetmap.josm.plugins.EasyRoutes.StopWatch.StopWatch;
+import org.openstreetmap.josm.plugins.EasyRoutes.StopWatcher.SingleStop;
 
 public class ZtmToOsmAction extends DownloadAlongAction {
 

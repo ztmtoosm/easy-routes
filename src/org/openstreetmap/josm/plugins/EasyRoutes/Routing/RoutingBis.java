@@ -1,9 +1,16 @@
 package org.openstreetmap.josm.plugins.EasyRoutes.Routing;
 
+import javafx.util.Pair;
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.data.coor.LatLon;
+import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.data.osm.Node;
 import org.openstreetmap.josm.data.osm.OsmPrimitive;
 import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.plugins.EasyRoutes.CityEnviroment.RoutingPreferences;
+import org.openstreetmap.josm.plugins.EasyRoutes.NewRouting.RoutingCalculator;
+import org.openstreetmap.josm.plugins.EasyRoutes.NewRouting.SplitException;
+import org.openstreetmap.josm.plugins.EasyRoutes.NewRouting.WaySplitter;
 import org.openstreetmap.josm.plugins.EasyRoutes.RoutingAlgorithm.NodeConnectException;
 
 import java.util.*;
@@ -11,15 +18,15 @@ import java.util.*;
 public class RoutingBis {
     List<Node> crucialNodes;
     List<List <Node> > middleNodes;
-    public RoutingSpecial ws;
     private RoutingLayer layer;
-
-    public RoutingBis(List<Node> crucialNodes, List<OsmPrimitive> otherNodes, String description, RoutingSpecial ws, boolean gui) {
+    private RoutingPreferences preferences;
+    DataSet dataSet;
+    public RoutingBis(DataSet ds, RoutingPreferences preferences, List<Node> crucialNodes, String description, boolean gui) {
         this.crucialNodes = crucialNodes;
-        this.ws = ws;
+        this.preferences = preferences;
+        dataSet = ds;
         if(gui) {
-            layer = new RoutingLayer(otherNodes, description, this);
-            this.ws.registerListener(layer);
+            layer = new RoutingLayer(description, this);
             Main.getLayerManager().addLayer(layer);
         }
     }
@@ -34,11 +41,8 @@ public class RoutingBis {
         if(this.crucialNodes.size()>(z+1)) {
             Node left = crucialNodes.get(z);
             Node right = crucialNodes.get(z+1);
-            List <Node> tmp = new ArrayList<>();
-            tmp.add(left);
-            tmp.add(right);
             try {
-                middleNodes.set(z, ws.completeNetwork(tmp, false));
+                middleNodes.set(z, new RoutingCalculator(left, right, preferences).getPath());
             } catch (NodeConnectException e) {
                 middleNodes.set(z, null);
             }
@@ -50,7 +54,7 @@ public class RoutingBis {
             tmp.add(left);
             tmp.add(right);
             try {
-                middleNodes.set(z-1, ws.completeNetwork(tmp, false));
+                middleNodes.set(z-1, new RoutingCalculator(left, right, preferences).getPath());
             } catch (NodeConnectException e) {
                 middleNodes.set(z-1, null);
             }
@@ -118,40 +122,45 @@ public class RoutingBis {
         return ret;
     }
 
-    public boolean refresh() {
+    public void refresh() {
         middleNodes = new ArrayList<>();
         boolean cale = true;
         for(int i=0; i<crucialNodes.size()-1; i++) {
             Node left = crucialNodes.get(i);
             Node right = crucialNodes.get(i+1);
-            List <Node> tmp = new ArrayList<>();
-            tmp.add(left);
-            tmp.add(right);
             try {
-                middleNodes.add(ws.completeNetwork(tmp, false));
+                middleNodes.add(new RoutingCalculator(left, right, preferences).getPath());
             } catch (NodeConnectException e) {
                 middleNodes.add(null);
                 cale = false;
             }
         }
-        return cale;
+        layer.refresh(cale);
     }
 
-    public List<Way> splitWays(List<String> tmp) throws NodeConnectException {
-        ws.splitWays(crucialNodes);
-        List<Way> xd = ws.getWaysAfterSplit(crucialNodes, tmp);
-        return xd;
+    public List<Pair<Way, String>> getWaysAfterSplit() throws NodeConnectException, SplitException {
+        return WaySplitter.getWaysAfterSplit(crucialNodes, preferences);
     }
-    public List<Way> splitWays() throws NodeConnectException {
-        List<String> tmp = null;
-        return splitWays(tmp);
+    public void splitWays() throws NodeConnectException {
+        WaySplitter.splitWays(crucialNodes, preferences);
     }
 
     public void eraseLayer() {
         if (layer == null)
             return;
-        if (ws != null)
-            ws.unregisterListener(layer);
         Main.getLayerManager().removeLayer(layer);
+    }
+
+    Node getClosestPoint(LatLon akt) {
+        double wynik = 1000000.0;
+        Node wyn = null;
+        for(Node n : WaySplitter.getAllConnectedNodes(dataSet, preferences)) {
+            double dist = n.getCoor().greatCircleDistance(akt);
+            if(dist<wynik) {
+                wynik=dist;
+                wyn = n;
+            }
+        }
+        return wyn;
     }
 }

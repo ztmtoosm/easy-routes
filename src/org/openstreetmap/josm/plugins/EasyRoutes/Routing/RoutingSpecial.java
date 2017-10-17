@@ -1,5 +1,5 @@
 package org.openstreetmap.josm.plugins.EasyRoutes.Routing;
-
+/*
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -111,20 +111,6 @@ public class RoutingSpecial implements DataSetListener  {
 					connectNodes(w);
 				}
 			}
-	}
-	Node getClosestPoint(LatLon akt) {
-		if(connectedNodes == null)
-			return null;
-		double wynik = 1000000.0;
-		Node wyn = null;
-		for(Node n : connectedNodes) {
-			double dist = n.getCoor().greatCircleDistance(akt);
-			if(dist<wynik) {
-				wynik=dist;
-				wyn = n;
-			}
-		}
-		return wyn;
 	}
 
 	public List<Node> completeNetwork(List<Node> middleNodes, boolean newDData)
@@ -324,11 +310,11 @@ public class RoutingSpecial implements DataSetListener  {
 		        new java.util.TimerTask() {
 		            @Override
 		            public void run() {
-		            			ws.changed=false;*/
+		            			ws.changed=false;
 		            			ws.updateAllData();
-		            			ws.callListeners();/*
+		            			ws.callListeners();
 		            }
-		        }, 500);*/
+		        }, 500);*//*
 	}
 	
 
@@ -396,3 +382,4 @@ public class RoutingSpecial implements DataSetListener  {
 		changeDelay();
 	}
 }
+*/
